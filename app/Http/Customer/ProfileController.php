@@ -1,0 +1,54 @@
+<?php
+
+namespace App\Http\Controllers\Customer;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\ProfileUpdateFormRequest;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+
+class ProfileController extends Controller
+{
+    public function edit()
+    {
+        $user = Auth::user()->load('customer');
+        return view('customer.profile', compact('user'));
+    }
+
+    public function update(ProfileUpdateFormRequest $request)
+    {
+        $user = Auth::user();
+        $validated = $request->validated();
+
+        DB::transaction(function () use ($user, $validated, $request) {
+            if ($request->hasFile('photo_file')) {
+                if ($user->photo_url && Storage::disk('public')->exists("photos/{$user->photo_url}")) {
+                    Storage::disk('public')->delete("photos/{$user->photo_url}");
+                }
+
+                $file = $request->file('photo_file');
+                $filename = $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+                Storage::disk('public')->putFileAs('photos', $file, $filename);
+                $user->photo_url = $filename;
+            }
+
+            $user->update([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'gender' => $validated['gender'],
+            ]);
+
+            if ($user->isCustomer()) {
+                $user->customer()->update([
+                    'nif' => $validated['nif'] ?? null,
+                    'address' => $validated['address'] ?? null,
+                    'default_payment_type' => $validated['default_payment_type'] ?? null,
+                    'default_payment_ref' => $validated['default_payment_ref'] ?? null,
+                ]);
+            }
+        });
+
+        return redirect()->route('profile.edit')->with('alert-success', 'Profile records updated successfully.');
+    }
+}
