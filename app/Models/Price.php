@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 
-#[Fillable(['catalog_price', 'custom_price', 'qty_discount_threshold', 'catalog_discount_price', 'custom_discount_price'])]
+#[Fillable(['unit_price_catalog', 'unit_price_own', 'unit_price_catalog_discount', 'unit_price_own_discount', 'qty_discount'])]
 class Price extends Model
 {
     public $timestamps = false;

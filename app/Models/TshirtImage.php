@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['customer_id', 'category_id', 'name', 'description', 'image_url'])]
+#[Fillable(['customer_id', 'category_id', 'name', 'description', 'image_url', 'custom'])]
 class TshirtImage extends Model
 {
     use SoftDeletes;

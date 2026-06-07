@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 
 
-#[Fillable(['id', 'nif', 'address', 'default_payment_type', 'default_payment_ref'])]
+#[Fillable(['id', 'nif', 'address', 'default_payment_type', 'default_payment_ref', 'custom'])]
 #[Table(timestamps: false)]
 
 class Customer extends Model

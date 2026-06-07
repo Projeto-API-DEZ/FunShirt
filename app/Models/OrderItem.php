@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['order_id', 'tshirt_image_id', 'color_code', 'size', 'quantity', 'unit_price', 'subtotal'])]
+#[Fillable(['order_id', 'tshirt_image_id', 'color_code', 'size', 'qty', 'unit_price', 'sub_total', 'custom'])]
 class OrderItem extends Model
 {
     public $timestamps = false;
