@@ -6,22 +6,26 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    <livewire:profile.update-profile-information-form />
+        <div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
+            <div class="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
+                <div class="rounded-2xl bg-white p-4 shadow sm:p-8">
+                    <div class="max-w-4xl">
+                        <livewire:profile.profile />
+                    </div>
                 </div>
-            </div>
 
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    <livewire:profile.update-password-form />
-                </div>
-            </div>
+                <div class="space-y-6">
+                    <div class="rounded-2xl bg-white p-4 shadow sm:p-8">
+                        <div class="max-w-xl">
+                            <livewire:profile.update-password-form />
+                        </div>
+                    </div>
 
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    <livewire:profile.delete-user-form />
+                    <div class="rounded-2xl bg-white p-4 shadow sm:p-8">
+                        <div class="max-w-xl">
+                            <livewire:profile.delete-user-form />
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

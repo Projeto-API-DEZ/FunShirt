@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\RegisterFormRequest;
+use App\Requests\RegisterFormRequest;
 use App\Models\User;
 use App\Models\Customer;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -14,7 +15,7 @@ class AuthController extends Controller
 {
     public function showLogin()
     {
-        return view('auth.login');
+        return view('pages.auth.login');
     }
 
     public function login(Request $request)
@@ -33,7 +34,7 @@ class AuthController extends Controller
             }
 
             $request->session()->regenerate();
-            return redirect()->intended(route('catalog.index'));
+            return redirect()->intended(route('dashboard'));
         }
 
         return back()->withErrors(['email' => 'The provided credentials do not match our records.'])->onlyInput('email');
@@ -41,14 +42,14 @@ class AuthController extends Controller
 
     public function showRegister()
     {
-        return view('auth.register');
+        return view('pages.auth.register');
     }
 
     public function register(RegisterFormRequest $request)
     {
         $validated = $request->validated();
 
-        DB::transaction(function () use ($validated) {
+        $user = DB::transaction(function () use ($validated) {
             $user = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
@@ -63,9 +64,16 @@ class AuthController extends Controller
                 'nif' => $validated['nif'] ?? null,
                 'address' => $validated['address'] ?? null,
             ]);
+
+            return $user;
         });
 
-        return redirect()->route('login')->with('alert-success', 'Account created successfully! Please log in.');
+        event(new Registered($user));
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return redirect()->route('verification.notice');
     }
 
     public function logout(Request $request)
@@ -73,6 +81,6 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect()->route('catalog.index');
+        return redirect('/');
     }
 }

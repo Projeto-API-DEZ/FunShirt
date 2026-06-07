@@ -82,12 +82,31 @@ class User extends Authenticatable implements MustVerifyEmail
         */
 
         // 检查：如果用户的photo_url有照片名字，并且再 "photos" 有对应名字的照片
-        $photourl = ($this->photo_url && Storage::disk('public')->exists("photos/{$this->photo_url}"))
-            ? $this->photo_url
-            : 'anonymous.png';
+        $photoPath = $this->normalizedPhotoPath();
 
-  
-        return asset("storage/photos/{$photourl}");
+        if ($photoPath && Storage::disk('public')->exists($photoPath)) {
+            return route('user.photo', ['path' => $photoPath], false);
+        }
+
+        return asset('storage/photos/anonymous.png');
+    }
+
+    public function hasUploadedPhoto(): bool
+    {
+        $photoPath = $this->normalizedPhotoPath();
+
+        return (bool) ($photoPath && Storage::disk('public')->exists($photoPath));
+    }
+
+    public function normalizedPhotoPath(): ?string
+    {
+        if (! $this->photo_url) {
+            return null;
+        }
+
+        return Str::startsWith($this->photo_url, 'photos/')
+            ? $this->photo_url
+            : "photos/{$this->photo_url}";
     }
 
     /**
@@ -119,5 +138,3 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->user_type === 'A';
     }
 }
-
-
