@@ -88,9 +88,19 @@ new class extends Component
                         {{ __('Profile') }}
                     </x-dropdown-link>
 
-                    <span class="block px-4 py-2 text-sm" style="color: var(--app-muted);">
-                        {{ __('Orders') }}
-                    </span>
+                    @if ($user->isAdmin())
+                        <x-dropdown-link :href="route('admin.users.index')" wire:navigate>
+                            {{ __('User Management') }}
+                        </x-dropdown-link>
+                    @elseif ($user->isStaff())
+                        <span class="block px-4 py-2 text-sm" style="color: var(--app-muted);">
+                            {{ __('Products') }}
+                        </span>
+                    @else
+                        <span class="block px-4 py-2 text-sm" style="color: var(--app-muted);">
+                            {{ __('Orders') }}
+                        </span>
+                    @endif
 
                     <button wire:click="logout" class="w-full text-start">
                         <x-dropdown-link>
@@ -168,7 +178,13 @@ new class extends Component
             </div>
 
             <div class="mt-3 space-y-1">
-                <div class="rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);">Orders</div>
+                @if ($user->isAdmin())
+                    <a href="{{ route('admin.users.index') }}" class="block rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);" wire:navigate>User Management</a>
+                @elseif ($user->isStaff())
+                    <div class="rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);">Products</div>
+                @else
+                    <div class="rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);">Orders</div>
+                @endif
                 <button wire:click="logout" class="w-full text-start">
                     <x-responsive-nav-link>
                         {{ __('Log Out') }}

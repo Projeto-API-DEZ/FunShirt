@@ -1,86 +1,223 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Models\Customer;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class UserManagementController extends Controller
 {
-    public function index(/*Request $request*/)
+    protected function ensureAdmin(): void
     {
-        /*
-        $query = User::with('customer');  
-        // 意思：先准备好查询用户，先把每个用户的“客户资料”也一起查好（避免 N+1 查询）
+        abort_unless(auth()->user()?->isAdmin(), 403);
+    }
 
-        if ($request->filled('type')) {
-        $query->where('user_type', $request->type);   
-        }
-        // 意思：如果用户在网页上选择了类型（比如 ?type=C），就只显示该类型的用户（C/F/A）
+    public function index(Request $request): View
+    {
+        $this->ensureAdmin();
 
-        if ($request->filled('search')) {
-            $query->where(function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%')
-                ->orWhere('email', 'like', '%' . $request->search . '%');
+        $query = User::query()->with('customer')->orderBy('name');
+
+        $search = trim((string) $request->string('search'));
+        $role = (string) $request->string('role');
+        $status = (string) $request->string('status');
+
+        if ($search !== '') {
+            $query->where(function ($builder) use ($search) {
+                $builder
+                    ->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
-        // 意思：如果输入了搜索内容，就去查名字或邮箱里包含这些文字的用户（模糊搜索）
 
-            $users = $query->paginate(15)->withQueryString();  
-            // 意思：每页显示15条记录，并且带上分页 + 保留筛选条件（点下一页时，搜索条件不会丢）
-            
-            return view('admin.users.index', compact('users'));
-            // 把用户列表数据传给后台页面模板去显示
-        */
-        return "index manager";
-    }
-
-    public function create()
-    {
-        return "create manager";
-    }
-
-    public function store(Request $request)
-    {
-        return "store manager";
-    }
-
-    public function show(User $user)
-    {
-        return "show manager";
-    }
-
-    public function edit(User $user)
-    {
-        return "edit manager";
-    }
-
-    public function update(Request $request, User $user)
-    {
-        return "update manager";
-    }
-
-    public function destroy(User $user)
-    {
-        return "destroy manager";
-    }
-    public function toggleBlock(User $user)
-    {
-        if ($user->id === Auth::id()) {
-            return back()->with('alert-danger', 'Self-blocking is restricted.');
+        if (in_array($role, ['C', 'F', 'A'], true)) {
+            $query->where('user_type', $role);
         }
-        // 重要保护：管理员不能把自己封禁！防止把自己锁在外面
 
-        $user->blocked = !$user->blocked;   // 切换状态（封禁 ↔ 正常）
+        if ($status === 'active') {
+            $query->where('blocked', false);
+        } elseif ($status === 'blocked') {
+            $query->where('blocked', true);
+        }
+
+        return view('admin.users.index', [
+            'users' => $query->get(),
+            'filters' => [
+                'search' => $search,
+                'role' => $role,
+                'status' => $status,
+            ],
+        ]);
+    }
+
+    public function create(): View
+    {
+        $this->ensureAdmin();
+
+        return view('admin.users.create', [
+            'user' => new User(),
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $this->ensureAdmin();
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'gender' => ['required', Rule::in(['M', 'F'])],
+            'user_type' => ['required', Rule::in(['C', 'F', 'A'])],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'photo_file' => ['nullable', 'image', 'max:2048'],
+            'nif' => ['nullable', 'string', 'size:9'],
+            'address' => ['nullable', 'string'],
+            'default_payment_type' => ['nullable', Rule::in(['Visa', 'PayPal', 'MB WAY'])],
+            'default_payment_ref' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $user = new User();
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+        $user->gender = $validated['gender'];
+        $user->user_type = $validated['user_type'];
+        $user->blocked = false;
+        $user->password = Hash::make($validated['password']);
+
+        if ($request->hasFile('photo_file')) {
+            $user->photo_url = $request->file('photo_file')->store('photos', 'public');
+        }
+
         $user->save();
 
-        $status = $user->blocked ? 'suspended' : 're-activated';
-        return back()->with('alert-success', "User account has been {$status} successfully.");
+        $this->syncCustomerDetails($user, $validated);
+
+        return redirect()
+            ->route('admin.users.edit', $user)
+            ->with('status', 'User created successfully.');
     }
 
+    public function show(User $user): View
+    {
+        $this->ensureAdmin();
+
+        return view('admin.users.show', [
+            'user' => $user->load('customer'),
+        ]);
+    }
+
+    public function edit(User $user): View
+    {
+        $this->ensureAdmin();
+
+        return view('admin.users.update', [
+            'user' => $user->load('customer'),
+        ]);
+    }
+
+    public function update(Request $request, User $user): RedirectResponse
+    {
+        $this->ensureAdmin();
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'gender' => ['required', Rule::in(['M', 'F'])],
+            'user_type' => ['required', Rule::in(['C', 'F', 'A'])],
+            'photo_file' => ['nullable', 'image', 'max:2048'],
+            'nif' => ['nullable', 'string', 'size:9'],
+            'address' => ['nullable', 'string'],
+            'default_payment_type' => ['nullable', Rule::in(['Visa', 'PayPal', 'MB WAY'])],
+            'default_payment_ref' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+        $user->gender = $validated['gender'];
+        $user->user_type = $validated['user_type'];
+
+        if ($request->hasFile('photo_file')) {
+            if ($user->hasUploadedPhoto()) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->normalizedPhotoPath());
+            }
+
+            $user->photo_url = $request->file('photo_file')->store('photos', 'public');
+        }
+
+        $user->save();
+
+        $this->syncCustomerDetails($user, $validated);
+
+        return redirect()
+            ->route('admin.users.edit', $user)
+            ->with('status', 'User updated successfully.');
+    }
+
+    public function destroy(User $user): RedirectResponse
+    {
+        $this->ensureAdmin();
+
+        if ($user->id === auth()->id()) {
+            return back()->withErrors([
+                'admin_user' => 'You cannot delete your own administrator account from this screen.',
+            ]);
+        }
+
+        if ($user->customer) {
+            $user->customer->delete();
+        }
+
+        $user->delete();
+
+        return redirect()
+            ->route('admin.users.index')
+            ->with('status', 'User deleted successfully.');
+    }
+
+    public function toggleBlock(User $user): RedirectResponse
+    {
+        $this->ensureAdmin();
+
+        if ($user->id === auth()->id()) {
+            return back()->withErrors([
+                'admin_user' => 'You cannot block or unblock your own administrator account.',
+            ]);
+        }
+
+        $user->blocked = ! $user->blocked;
+        $user->save();
+
+        return redirect()
+            ->route('admin.users.edit', $user)
+            ->with('status', $user->blocked ? 'User blocked successfully.' : 'User unblocked successfully.');
+    }
+
+    protected function syncCustomerDetails(User $user, array $validated): void
+    {
+        $hasCustomerData = collect([
+            $validated['nif'] ?? null,
+            $validated['address'] ?? null,
+            $validated['default_payment_type'] ?? null,
+            $validated['default_payment_ref'] ?? null,
+        ])->contains(fn ($value) => filled($value));
+
+        if (! $user->customer && ! $hasCustomerData && $user->user_type !== 'C') {
+            return;
+        }
+
+        Customer::query()->updateOrCreate(
+            ['id' => $user->id],
+            [
+                'nif' => $validated['nif'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'default_payment_type' => $validated['default_payment_type'] ?? null,
+                'default_payment_ref' => $validated['default_payment_ref'] ?? null,
+            ]
+        );
+    }
 }

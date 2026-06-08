@@ -210,50 +210,48 @@ new class extends Component
             </div>
         </div>
 
-        @if (auth()->user()->isCustomer())
-            <div class="rounded-2xl border p-6" style="background: var(--app-surface-2); border-color: var(--app-border);">
-                <div class="mb-5">
-                    <div class="flex flex-wrap items-center gap-3">
-                        <h3 class="text-base font-semibold text-gray-900">Customer Preferences</h3>
-                        <span class="inline-flex rounded-full px-3 py-1 text-xs font-medium" style="background: var(--app-surface); color: var(--app-muted);">Optional</span>
-                    </div>
-                    <p class="mt-2 text-sm text-gray-600">Optional billing and payment information used to speed up checkout.</p>
+        <div class="rounded-2xl border p-6" style="background: var(--app-surface-2); border-color: var(--app-border);">
+            <div class="mb-5">
+                <div class="flex flex-wrap items-center gap-3">
+                    <h3 class="text-base font-semibold text-gray-900">Billing &amp; Payment Preferences</h3>
+                    <span class="inline-flex rounded-full px-3 py-1 text-xs font-medium" style="background: var(--app-surface); color: var(--app-muted);">Optional</span>
+                </div>
+                <p class="mt-2 text-sm text-gray-600">Optional billing and payment information for customers, staff and administrators.</p>
+            </div>
+
+            <div class="grid gap-6 md:grid-cols-2">
+                <div>
+                    <label for="nif" class="block text-sm font-medium text-gray-900">Tax Number (NIF)</label>
+                    <input wire:model="nif" id="nif" name="nif" type="text" inputmode="numeric" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <x-input-error class="mt-2" :messages="$errors->get('nif')" />
                 </div>
 
-                <div class="grid gap-6 md:grid-cols-2">
-                    <div>
-                        <label for="nif" class="block text-sm font-medium text-gray-900">Tax Number (NIF)</label>
-                        <input wire:model="nif" id="nif" name="nif" type="text" inputmode="numeric" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <x-input-error class="mt-2" :messages="$errors->get('nif')" />
-                    </div>
-
-                    <div>
-                        <label for="default_payment_type" class="block text-sm font-medium text-gray-900">Default Payment Method</label>
-                        <select wire:model="default_payment_type" id="default_payment_type" name="default_payment_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <option value="">Select a payment method</option>
-                            <option value="Visa">Visa</option>
-                            <option value="PayPal">PayPal</option>
-                            <option value="MB WAY">MB WAY</option>
-                        </select>
-                        <x-input-error class="mt-2" :messages="$errors->get('default_payment_type')" />
-                    </div>
-                </div>
-
-                <div class="mt-6 grid gap-6 md:grid-cols-2">
-                    <div>
-                        <label for="default_payment_ref" class="block text-sm font-medium text-gray-900">Preferred Payment Reference</label>
-                        <input wire:model="default_payment_ref" id="default_payment_ref" name="default_payment_ref" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <x-input-error class="mt-2" :messages="$errors->get('default_payment_ref')" />
-                    </div>
-
-                    <div>
-                        <label for="address" class="block text-sm font-medium text-gray-900">Address</label>
-                        <textarea wire:model="address" id="address" name="address" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
-                        <x-input-error class="mt-2" :messages="$errors->get('address')" />
-                    </div>
+                <div>
+                    <label for="default_payment_type" class="block text-sm font-medium text-gray-900">Default Payment Method</label>
+                    <select wire:model="default_payment_type" id="default_payment_type" name="default_payment_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Select a payment method</option>
+                        <option value="Visa">Visa</option>
+                        <option value="PayPal">PayPal</option>
+                        <option value="MB WAY">MB WAY</option>
+                    </select>
+                    <x-input-error class="mt-2" :messages="$errors->get('default_payment_type')" />
                 </div>
             </div>
-        @endif
+
+            <div class="mt-6 grid gap-6 md:grid-cols-2">
+                <div>
+                    <label for="default_payment_ref" class="block text-sm font-medium text-gray-900">Preferred Payment Reference</label>
+                    <input wire:model="default_payment_ref" id="default_payment_ref" name="default_payment_ref" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <x-input-error class="mt-2" :messages="$errors->get('default_payment_ref')" />
+                </div>
+
+                <div>
+                    <label for="address" class="block text-sm font-medium text-gray-900">Address</label>
+                    <textarea wire:model="address" id="address" name="address" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                    <x-input-error class="mt-2" :messages="$errors->get('address')" />
+                </div>
+            </div>
+        </div>
 
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Save') }}</x-primary-button>
