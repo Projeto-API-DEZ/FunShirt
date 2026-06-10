@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\CartItemFormRequest;
-use App\Models\TshirtImage;
 use App\Models\Color;
 use App\Models\Price;
+use App\Models\TshirtImage;
+use App\Requests\CartItemFormRequest;
 use Illuminate\Http\Request;
 
 class CartController extends Controller
@@ -14,7 +14,6 @@ class CartController extends Controller
     {
         $cart = session()->get('cart', []);
         $pricing = Price::first();
-        
         $totalQuantity = array_sum(array_column($cart, 'qty'));
         $useDiscount = $pricing && $totalQuantity >= $pricing->qty_discount;
 
@@ -25,7 +24,6 @@ class CartController extends Controller
             } else {
                 $unitPrice = $useDiscount ? $pricing->unit_price_catalog_discount : $pricing->unit_price_catalog;
             }
-            
             $cart[$key]['unit_price'] = $unitPrice;
             $cart[$key]['sub_total'] = $unitPrice * $item['qty'];
             $totalPrice += $cart[$key]['sub_total'];
@@ -56,11 +54,12 @@ class CartController extends Controller
                 'color_code' => $color->code,
                 'color_name' => $color->name,
                 'size' => $validated['size'],
-                'qty' => $validated['qty']
+                'qty' => $validated['qty'],
             ];
         }
 
         session()->put('cart', $cart);
+
         return redirect()->route('cart.index')->with('alert-success', 'Item added to your shopping cart.');
     }
 
@@ -72,6 +71,7 @@ class CartController extends Controller
         if (isset($cart[$key])) {
             $cart[$key]['qty'] = $request->qty;
             session()->put('cart', $cart);
+
             return redirect()->route('cart.index')->with('alert-success', 'Cart quantities updated.');
         }
 
@@ -85,6 +85,7 @@ class CartController extends Controller
         if (isset($cart[$key])) {
             unset($cart[$key]);
             session()->put('cart', $cart);
+
             return redirect()->route('cart.index')->with('alert-success', 'Item discarded from cart.');
         }
 
@@ -94,6 +95,7 @@ class CartController extends Controller
     public function clear()
     {
         session()->forget('cart');
+
         return redirect()->route('cart.index')->with('alert-success', 'Shopping cart cleared.');
     }
 }

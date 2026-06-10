@@ -1,8 +1,8 @@
 <x-layouts::main-content title="My Orders" heading="Order History" subheading="View status and details of your previous purchases">
     <div class="max-w-7xl mx-auto py-6">
-        <div class="bg-zinc-50 border border-zinc-200 dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden">
+        <div class="bg-zinc-50 border border-zinc-200 rounded-xl shadow-sm overflow-hidden">
             <table class="w-full text-left text-sm">
-                <thead class="bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 uppercase font-bold">
+                <thead class="bg-zinc-100 text-zinc-600 uppercase font-bold">
                     <tr>
                         <th class="px-6 py-4">Order #</th>
                         <th class="px-6 py-4">Date</th>
@@ -11,11 +11,11 @@
                         <th class="px-6 py-4 text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                <tbody class="divide-y divide-zinc-200">
                     @foreach($orders as $order)
-                        <tr class="hover:bg-zinc-100 dark:hover:bg-zinc-800 transition">
+                        <tr class="hover:bg-zinc-100 transition">
                             <td class="px-6 py-4 font-bold">#{{ $order->id }}</td>
-                            <td class="px-6 py-4 text-zinc-600 dark:text-zinc-400">{{ $order->created_at->format('Y-m-d') }}</td>
+                            <td class="px-6 py-4 text-zinc-600">{{ $order->created_at->format('Y-m-d') }}</td>
                             <td class="px-6 py-4">
                                 <flux:badge variant="{{ $order->status === 'closed' ? 'success' : 'warning' }}">
                                     {{ ucfirst($order->status) }}

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -14,6 +14,7 @@ class TshirtImageFormRequest extends FormRequest
     public function rules(): array
     {
         $isPost = $this->isMethod('post');
+
         return [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',

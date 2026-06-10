@@ -2,24 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\TshirtImageFormRequest;
-use App\Models\TshirtImage;
 use App\Models\Category;
+use App\Models\TshirtImage;
+use App\Requests\TshirtImageFormRequest;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Http\Request;
 
 class TshirtImageController extends Controller
 {
     public function index()
     {
         $user = Auth::user();
+
         if ($user->isCustomer()) {
             $images = TshirtImage::where('customer_id', $user->id)->latest()->paginate(10);
+
             return view('tshirt_images.my_designs', compact('images'));
         }
 
         $images = TshirtImage::whereNull('customer_id')->with('category')->latest()->paginate(15);
+
         return view('tshirt_images.admin_index', compact('images'));
     }
 
@@ -40,10 +43,10 @@ class TshirtImageController extends Controller
             $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
 
             if ($user->isCustomer()) {
-                // Secure private upload to internal local disk directory
+                // Ficheiros privados de clientes ficam fora do disco publico.
                 Storage::disk('local')->putFileAs('tshirt_images_private', $file, $filename);
             } else {
-                // Public catalog artwork deployment to public storage disk
+                // Imagens de catalogo ficam disponiveis no disco publico.
                 Storage::disk('public')->putFileAs('tshirt_images', $file, $filename);
             }
         }
@@ -66,7 +69,7 @@ class TshirtImageController extends Controller
             abort(403);
         }
 
-        // Keep database reference active via SoftDeletes but remove physical file representation
+        // O registo e apagado logicamente; o ficheiro fisico e removido aqui.
         if ($tshirtImage->customer_id) {
             Storage::disk('local')->delete("tshirt_images_private/{$tshirtImage->image_url}");
         } else {
@@ -74,6 +77,7 @@ class TshirtImageController extends Controller
         }
 
         $tshirtImage->delete();
+
         return back()->with('alert-success', 'Design asset discarded from inventory records.');
     }
 
@@ -82,7 +86,7 @@ class TshirtImageController extends Controller
         $user = Auth::user();
         $tshirtImage = TshirtImage::where('image_url', $filename)->firstOrFail();
 
-        // Assert authority mapping check before passing image data downstream
+        // Um cliente so pode abrir os proprios ficheiros privados.
         if ($user->isCustomer() && $tshirtImage->customer_id !== $user->id) {
             abort(403, 'Unauthorized resource stream lookup.');
         }

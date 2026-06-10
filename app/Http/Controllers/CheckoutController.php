@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\CheckoutFormRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Price;
+use App\Requests\CheckoutFormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -19,6 +19,7 @@ class CheckoutController extends Controller
         }
 
         $customer = Auth::user()->customer;
+
         return view('checkout.index', compact('cart', 'customer'));
     }
 
@@ -32,7 +33,7 @@ class CheckoutController extends Controller
         $validated = $request->validated();
         $user = Auth::user();
 
-        // Recalculate exact total sums using database pricing configurations to guard against manipulation
+        // O total e recalculado no servidor para impedir manipulacao no cliente.
         $pricing = Price::first();
         $totalQuantity = array_sum(array_column($cart, 'qty'));
         $useDiscount = $pricing && $totalQuantity >= $pricing->qty_discount;
@@ -77,6 +78,7 @@ class CheckoutController extends Controller
         });
 
         session()->forget('cart');
+
         return redirect()->route('orders.index')->with('alert-success', 'Order submitted successfully! Tracking number generated.');
     }
 }

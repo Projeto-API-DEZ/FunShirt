@@ -1,8 +1,8 @@
-<nav class="w-full lg:w-64 bg-zinc-100 dark:bg-zinc-950 border-b lg:border-b-0 lg:border-r border-zinc-200 dark:border-zinc-800 p-4 flex flex-col justify-between">
+<nav class="w-full lg:w-64 bg-zinc-100 border-b lg:border-b-0 lg:border-r border-zinc-200 p-4 flex flex-col justify-between">
     <div class="space-y-6">
         <!-- App Title Head -->
         <div class="flex items-center space-x-2 px-2">
-            <span class="text-xl font-black tracking-wider text-indigo-600 dark:text-indigo-400 uppercase">FunShirt</span>
+            <span class="text-xl font-black tracking-wider text-indigo-600 uppercase">FunShirt</span>
         </div>
 
         <!-- Links Navigation Navigation Links Section -->
@@ -34,7 +34,7 @@
     </div>
 
     <!-- Identity Operational Context Footer Segment -->
-    <div class="mt-auto pt-4 border-t border-zinc-200 dark:border-zinc-800">
+    <div class="mt-auto pt-4 border-t border-zinc-200">
         @auth
             <div class="flex items-center justify-between px-2">
                 <div class="flex items-center space-x-3">
@@ -42,10 +42,10 @@
                         {{ auth()->user()->initials() }}
                     </div>
                     <div>
-                        <a href="{{ route('profile.edit') }}" class="block text-sm font-semibold hover:underline text-zinc-800 dark:text-zinc-200 truncate max-w-[120px]">
+                        <a href="{{ route('profile.edit') }}" class="block text-sm font-semibold hover:underline text-zinc-800 truncate max-w-[120px]">
                             {{ auth()->user()->name }}
                         </a>
-                        <span class="block text-xs text-zinc-500 dark:text-zinc-400">
+                        <span class="block text-xs text-zinc-500">
                             {{ auth()->user()->isAdmin() ? 'Administrator' : (auth()->user()->isStaff() ? 'Staff' : 'Customer') }}
                         </span>
                     </div>

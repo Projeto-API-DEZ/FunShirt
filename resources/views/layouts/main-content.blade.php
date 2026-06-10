@@ -9,12 +9,12 @@
 
     <div class="max-w-7xl mx-auto space-y-6">
         @if($heading || $subheading)
-            <div class="border-b border-zinc-200 dark:border-zinc-800 pb-4">
+            <div class="border-b border-zinc-200 pb-4">
                 @if($heading)
-                    <h1 class="text-3xl font-extrabold text-zinc-950 dark:text-white tracking-tight">{{ $heading }}</h1>
+                    <h1 class="text-3xl font-extrabold text-zinc-950 tracking-tight">{{ $heading }}</h1>
                 @endif
                 @if($subheading)
-                    <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1 font-light">{{ $subheading }}</p>
+                    <p class="text-sm text-zinc-500 mt-1 font-light">{{ $subheading }}</p>
                 @endif
             </div>
         @endif

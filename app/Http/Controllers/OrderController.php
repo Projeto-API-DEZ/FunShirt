@@ -14,7 +14,7 @@ class OrderController extends Controller
         $user = Auth::user();
         $query = Order::with(['customer.user', 'items']);
 
-        // Scope viewing permissions down by operational user tier level
+        // Clientes so podem ver as proprias encomendas.
         if ($user->isCustomer()) {
             $query->where('customer_id', $user->id);
         }
