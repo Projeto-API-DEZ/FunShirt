@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -30,7 +30,7 @@ class CheckoutFormRequest extends FormRequest
                     } elseif ($type === 'MB WAY' && !preg_match('/^9[0-9]{8}$/', $value)) {
                         $fail('MB WAY references must have exactly 9 digits and start with 9.');
                     }
-                }
+                },
             ],
         ];
     }

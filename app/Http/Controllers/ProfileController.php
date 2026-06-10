@@ -3,16 +3,17 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ProfileUpdateFormRequest;
+use App\Requests\ProfileUpdateFormRequest;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
 
 class ProfileController extends Controller
 {
     public function edit()
     {
         $user = Auth::user()->load('customer');
+
         return view('customer.profile', compact('user'));
     }
 
@@ -23,8 +24,8 @@ class ProfileController extends Controller
 
         DB::transaction(function () use ($user, $validated, $request) {
             if ($request->hasFile('photo_file')) {
-                if ($user->photo_url && Storage::disk('public')->exists("photos/{$user->photo_url}")) {
-                    Storage::disk('public')->delete("photos/{$user->photo_url}");
+                if ($user->hasUploadedPhoto()) {
+                    Storage::disk('public')->delete($user->normalizedPhotoPath());
                 }
 
                 $file = $request->file('photo_file');
@@ -40,6 +41,7 @@ class ProfileController extends Controller
             ]);
 
             if ($user->isCustomer()) {
+                // Dados especificos de cliente so sao atualizados para contas cliente.
                 $user->customer()->update([
                     'nif' => $validated['nif'] ?? null,
                     'address' => $validated['address'] ?? null,

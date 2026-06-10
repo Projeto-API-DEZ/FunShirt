@@ -2,21 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\PriceFormRequest;
 use App\Models\Price;
+use App\Requests\PriceFormRequest;
 
 class PriceController extends Controller
 {
     public function edit()
     {
         $price = Price::first() ?? new Price();
+
         return view('prices.edit', compact('price'));
     }
 
     public function update(PriceFormRequest $request)
     {
         $price = Price::first();
-        if (!$price) {
+
+        if (! $price) {
             $price = new Price();
         }
 

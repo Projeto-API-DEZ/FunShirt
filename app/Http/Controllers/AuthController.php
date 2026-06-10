@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Requests\RegisterFormRequest;
-use App\Models\User;
 use App\Models\Customer;
-use Illuminate\Auth\Events\Registered;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
@@ -28,12 +28,22 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $user = Auth::user();
 
+            // Contas bloqueadas nao podem manter sessao ativa.
             if ($user->blocked) {
                 Auth::logout();
+
                 return back()->withErrors(['email' => 'Your account has been suspended. Please contact support.']);
             }
 
             $request->session()->regenerate();
+
+            // O primeiro login dispara o envio da verificacao quando necessario.
+            if (! $user->hasVerifiedEmail()) {
+                $user->sendEmailVerificationNotification();
+
+                return redirect()->route('verification.notice');
+            }
+
             return redirect()->intended(route('dashboard'));
         }
 
@@ -81,6 +91,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect('/');
     }
 }

@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Requests\AdminUserStoreRequest;
+use App\Requests\AdminUserUpdateRequest;
 use App\Models\Customer;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class UserManagementController extends Controller
@@ -104,22 +106,11 @@ class UserManagementController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(AdminUserStoreRequest $request): RedirectResponse
     {
         $this->ensureAdmin();
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'gender' => ['required', Rule::in(['M', 'F'])],
-            'user_type' => ['required', Rule::in(['C', 'F', 'A'])],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'photo_file' => ['nullable', 'image', 'max:2048'],
-            'nif' => ['nullable', 'string', 'size:9'],
-            'address' => ['nullable', 'string'],
-            'default_payment_type' => ['nullable', Rule::in(['Visa', 'PayPal', 'MB WAY'])],
-            'default_payment_ref' => ['nullable', 'string', 'max:255'],
-        ]);
+        $validated = $request->validated();
 
         $user = new User();
         $user->name = $validated['name'];
@@ -138,7 +129,7 @@ class UserManagementController extends Controller
         $this->syncCustomerDetails($user, $validated);
 
         return redirect()
-            ->route('admin.users.edit', $user)
+            ->route('admin.users.show', $user)
             ->with('status', 'User created successfully.');
     }
 
@@ -160,21 +151,11 @@ class UserManagementController extends Controller
         ]);
     }
 
-    public function update(Request $request, User $user): RedirectResponse
+    public function update(AdminUserUpdateRequest $request, User $user): RedirectResponse
     {
         $this->ensureAdmin();
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
-            'gender' => ['required', Rule::in(['M', 'F'])],
-            'user_type' => ['required', Rule::in(['C', 'F', 'A'])],
-            'photo_file' => ['nullable', 'image', 'max:2048'],
-            'nif' => ['nullable', 'string', 'size:9'],
-            'address' => ['nullable', 'string'],
-            'default_payment_type' => ['nullable', Rule::in(['Visa', 'PayPal', 'MB WAY'])],
-            'default_payment_ref' => ['nullable', 'string', 'max:255'],
-        ]);
+        $validated = $request->validated();
 
         $user->name = $validated['name'];
         $user->email = $validated['email'];
@@ -183,7 +164,7 @@ class UserManagementController extends Controller
 
         if ($request->hasFile('photo_file')) {
             if ($user->hasUploadedPhoto()) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->normalizedPhotoPath());
+                Storage::disk('public')->delete($user->normalizedPhotoPath());
             }
 
             $user->photo_url = $request->file('photo_file')->store('photos', 'public');
@@ -212,6 +193,7 @@ class UserManagementController extends Controller
             $user->customer->delete();
         }
 
+        // A remocao administrativa e sempre logica (soft delete).
         $user->delete();
 
         return redirect()
@@ -246,6 +228,7 @@ class UserManagementController extends Controller
             $validated['default_payment_ref'] ?? null,
         ])->contains(fn ($value) => filled($value));
 
+        // Perfis nao-clientes so ganham registo em customer se houver dados a preservar.
         if (! $user->customer && ! $hasCustomerData && $user->user_type !== 'C') {
             return;
         }
