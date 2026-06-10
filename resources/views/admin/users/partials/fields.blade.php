@@ -14,17 +14,18 @@
         : 'Will be pending until email verification';
 
     $blockedLabel = $user->blocked ? 'Blocked' : 'Active';
+    $avatarSize = $mode === 'show' ? 250 : 160;
 @endphp
 
-<div class="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
-    <div class="space-y-6">
+<div class="grid gap-10 xl:grid-cols-[1.25fr_0.75fr]">
+    <div class="space-y-10">
         <section class="rounded-2xl border p-6 shadow-sm" style="background: var(--app-surface); border-color: var(--app-border);">
             <div class="mb-5">
                 <h3 class="text-base font-semibold" style="color: var(--app-text);">Identity</h3>
                 <p class="mt-1 text-sm" style="color: var(--app-muted);">Core account data used for access and role assignment.</p>
             </div>
 
-            <div class="grid gap-5 md:grid-cols-2">
+            <div class="grid md:grid-cols-2" style="column-gap: 15px; row-gap: 15px;">
                 <div>
                     <label for="name" class="block text-sm font-medium" style="color: var(--app-text);">Full Name</label>
                     <input
@@ -116,7 +117,7 @@
                 </p>
             </div>
 
-            <div class="grid gap-5 md:grid-cols-2">
+            <div class="grid md:grid-cols-2" style="column-gap: 15px; row-gap: 15px;">
                 <div>
                     <label for="nif" class="block text-sm font-medium" style="color: var(--app-text);">NIF</label>
                     <input
@@ -177,23 +178,24 @@
         </section>
     </div>
 
-    <div class="space-y-6">
+    <div class="space-y-10">
         <section class="rounded-2xl border p-6 shadow-sm" style="background: var(--app-surface); border-color: var(--app-border);">
             <div class="mb-5">
                 <h3 class="text-base font-semibold" style="color: var(--app-text);">Avatar</h3>
                 <p class="mt-1 text-sm" style="color: var(--app-muted);">
-                    {{ $readonly ? 'Preview only. File selection is disabled on the show page.' : 'Upload an avatar or keep the initials-based fallback.' }}
+                    {{ $readonly ? 'Read-only preview for the selected account.' : 'Upload an avatar or keep the initials-based fallback.' }}
                 </p>
             </div>
 
             <div class="flex flex-col items-center gap-4">
-                <div class="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border text-3xl font-semibold uppercase shadow-sm"
-                     style="border-color: var(--app-border); background: {{ $user->hasUploadedPhoto() ? 'transparent' : '#4f46e5' }}; color: {{ $user->hasUploadedPhoto() ? 'transparent' : '#ffffff' }};">
+                <div class="flex items-center justify-center overflow-hidden rounded-full border font-semibold uppercase shadow-sm"
+                     style="width: {{ $avatarSize }}px; height: {{ $avatarSize }}px; min-width: {{ $avatarSize }}px; min-height: {{ $avatarSize }}px; max-width: {{ $avatarSize }}px; max-height: {{ $avatarSize }}px; border-color: var(--app-border); background: {{ $user->hasUploadedPhoto() ? 'transparent' : '#4f46e5' }}; color: {{ $user->hasUploadedPhoto() ? 'transparent' : '#ffffff' }}; font-size: {{ $mode === 'show' ? '72px' : '42px' }};">
                     @if ($user->hasUploadedPhoto())
                         <img
                             src="{{ $user->photoFullUrl }}"
                             alt=""
-                            class="block h-full w-full object-cover object-center"
+                            class="block object-cover object-center"
+                            style="width: {{ $avatarSize }}px; height: {{ $avatarSize }}px; min-width: {{ $avatarSize }}px; min-height: {{ $avatarSize }}px; max-width: {{ $avatarSize }}px; max-height: {{ $avatarSize }}px;"
                         >
                     @elseif ($user->exists && filled($user->name))
                         {{ $user->initials() }}
@@ -221,12 +223,14 @@
             <section class="rounded-2xl border p-6 shadow-sm" style="background: var(--app-surface); border-color: var(--app-border);">
                 <div class="mb-5">
                     <h3 class="text-base font-semibold" style="color: var(--app-text);">Account Status</h3>
-                    <p class="mt-1 text-sm" style="color: var(--app-muted);">
-                        Email verification comes from the `users.email_verified_at` field in the database.
-                    </p>
+                    @if ($mode === 'edit')
+                        <p class="mt-1 text-sm" style="color: var(--app-muted);">
+                            Review verification, creation date and blocking status before saving changes.
+                        </p>
+                    @endif
                 </div>
 
-                <div class="space-y-4">
+                <div style="display: grid; row-gap: 15px;">
                     <div>
                         <label class="block text-sm font-medium" style="color: var(--app-text);">Email Verification</label>
                         <div class="mt-1 rounded-xl border px-3 py-2 text-sm" style="background: var(--app-surface-2); border-color: var(--app-border); color: var(--app-text);">
@@ -234,12 +238,21 @@
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium" style="color: var(--app-text);">Current Role</label>
-                        <div class="mt-1 rounded-xl border px-3 py-2 text-sm" style="background: var(--app-surface-2); border-color: var(--app-border); color: var(--app-text);">
-                            {{ $roleLabels[$user->user_type] ?? 'Not set' }}
+                    @if ($mode === 'edit')
+                        <div>
+                            <label class="block text-sm font-medium" style="color: var(--app-text);">Current Role</label>
+                            <div class="mt-1 rounded-xl border px-3 py-2 text-sm" style="background: var(--app-surface-2); border-color: var(--app-border); color: var(--app-text);">
+                                {{ $roleLabels[$user->user_type] ?? 'Not set' }}
+                            </div>
                         </div>
-                    </div>
+                    @else
+                        <div>
+                            <label class="block text-sm font-medium" style="color: var(--app-text);">Created Date</label>
+                            <div class="mt-1 rounded-xl border px-3 py-2 text-sm" style="background: var(--app-surface-2); border-color: var(--app-border); color: var(--app-text);">
+                                {{ optional($user->created_at)->format('Y-m-d H:i') ?: '-' }}
+                            </div>
+                        </div>
+                    @endif
 
                     <div>
                         <label class="block text-sm font-medium" style="color: var(--app-text);">Blocked</label>
@@ -261,17 +274,14 @@
                 </div>
 
                 <div class="flex flex-wrap gap-3">
-                    <form action="{{ route('admin.users.toggle-block', $user) }}" method="POST">
-                        @csrf
-                        @method('PATCH')
-                        <button
-                            type="submit"
-                            class="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium"
-                            style="background: {{ $user->blocked ? '#ecfdf5' : '#fef2f2' }}; color: {{ $user->blocked ? '#047857' : '#b91c1c' }};"
-                        >
-                            {{ $user->blocked ? 'Unblock User' : 'Block User' }}
-                        </button>
-                    </form>
+                    <button
+                        type="submit"
+                        form="toggle-block-form"
+                        class="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium"
+                        style="background: {{ $user->blocked ? '#ecfdf5' : '#fef2f2' }}; color: {{ $user->blocked ? '#047857' : '#b91c1c' }};"
+                    >
+                        {{ $user->blocked ? 'Unblock User' : 'Block User' }}
+                    </button>
                 </div>
             </section>
         @endif

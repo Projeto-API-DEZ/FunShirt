@@ -21,11 +21,15 @@ class UserManagementController extends Controller
     {
         $this->ensureAdmin();
 
-        $query = User::query()->with('customer')->orderBy('name');
+        $query = User::query()->with('customer');
 
         $search = trim((string) $request->string('search'));
         $role = (string) $request->string('role');
         $status = (string) $request->string('status');
+        $gender = (string) $request->string('gender');
+        $verification = (string) $request->string('verification');
+        $sort = (string) $request->string('sort', 'name_asc');
+        $perPageInput = strtolower(trim((string) $request->string('per_page', '20')));
 
         if ($search !== '') {
             $query->where(function ($builder) use ($search) {
@@ -45,12 +49,48 @@ class UserManagementController extends Controller
             $query->where('blocked', true);
         }
 
+        if (in_array($gender, ['M', 'F'], true)) {
+            $query->where('gender', $gender);
+        }
+
+        if ($verification === 'verified') {
+            $query->whereNotNull('email_verified_at');
+        } elseif ($verification === 'pending') {
+            $query->whereNull('email_verified_at');
+        }
+
+        match ($sort) {
+            'name_desc' => $query->orderByDesc('name'),
+            'created_asc' => $query->orderBy('created_at'),
+            'created_desc' => $query->orderByDesc('created_at'),
+            'email_asc' => $query->orderBy('email'),
+            'email_desc' => $query->orderByDesc('email'),
+            default => $query->orderBy('name'),
+        };
+
+        $perPage = match ($perPageInput) {
+            '10' => 10,
+            '20' => 20,
+            '50' => 50,
+            '100' => 100,
+            'all' => null,
+            default => 20,
+        };
+
+        $users = $perPage === null
+            ? $query->get()
+            : $query->paginate($perPage)->withQueryString();
+
         return view('admin.users.index', [
-            'users' => $query->get(),
+            'users' => $users,
             'filters' => [
                 'search' => $search,
                 'role' => $role,
                 'status' => $status,
+                'gender' => $gender,
+                'verification' => $verification,
+                'sort' => $sort,
+                'per_page' => $perPageInput === '' ? '20' : $perPageInput,
             ],
         ]);
     }
@@ -154,7 +194,7 @@ class UserManagementController extends Controller
         $this->syncCustomerDetails($user, $validated);
 
         return redirect()
-            ->route('admin.users.edit', $user)
+            ->route('admin.users.show', $user)
             ->with('status', 'User updated successfully.');
     }
 

@@ -31,13 +31,13 @@
                 </div>
             @endif
 
-            <form action="{{ route('admin.users.update', $user) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+            <form action="{{ route('admin.users.update', $user) }}" method="POST" enctype="multipart/form-data" class="space-y-8">
                 @csrf
                 @method('PUT')
 
                 @include('admin.users.partials.fields', ['mode' => 'edit', 'user' => $user])
 
-                <div class="flex flex-wrap gap-3 border-t pt-6" style="border-color: var(--app-border);">
+                <div class="flex flex-wrap border-t pt-6" style="gap: 10px; border-color: var(--app-border);">
                     <button type="submit" class="rounded-full px-4 py-2 text-sm font-medium text-white" style="background: #4f46e5;">
                         Save Changes
                     </button>
@@ -65,6 +65,11 @@
             >
                 @csrf
                 @method('DELETE')
+            </form>
+
+            <form id="toggle-block-form" action="{{ route('admin.users.toggle-block', $user) }}" method="POST">
+                @csrf
+                @method('PATCH')
             </form>
         </div>
     </div>

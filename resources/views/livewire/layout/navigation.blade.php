@@ -37,7 +37,7 @@ new class extends Component
             </div>
         </div>
 
-        <div class="hidden items-center gap-3 sm:flex">
+        <div class="hidden items-center gap-4 sm:flex">
             <button
                 type="button"
                 id="theme-toggle-app"
@@ -50,7 +50,7 @@ new class extends Component
 
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                    <button class="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition" style="background: var(--app-surface); border-color: var(--app-border); color: var(--app-text);">
+                    <button class="inline-flex items-center gap-3 rounded-full border px-3 py-2 text-sm font-medium transition" style="background: var(--app-surface); border-color: var(--app-border); color: var(--app-text);">
                         @if($user->hasUploadedPhoto())
                             <span
                                 class="inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-600 text-xs font-semibold leading-none text-white"

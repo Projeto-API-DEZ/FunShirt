@@ -25,7 +25,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('admin.users.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+            <form action="{{ route('admin.users.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
                 @csrf
 
                 @include('admin.users.partials.fields', ['mode' => 'create', 'user' => $user])
