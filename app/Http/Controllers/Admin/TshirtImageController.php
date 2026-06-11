@@ -36,7 +36,7 @@ class TshirtImageController extends Controller
     public function create()
     {
         $categories = Category::orderBy('name')->get();
-        return view('tshirt_images.create', compact('categories'));
+        return view('admin.tshirt-images.create', compact('categories'));
     }
 
     public function store(TshirtImageFormRequest $request)

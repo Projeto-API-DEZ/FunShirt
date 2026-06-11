@@ -12,7 +12,7 @@ class PriceController extends Controller
     {
         $price = Price::first() ?? new Price();
 
-        return view('prices.edit', compact('price'));
+        return view('admin.prices.edit', compact('price'));
     }
 
     public function update(PriceFormRequest $request)
@@ -26,6 +26,6 @@ class PriceController extends Controller
         $price->fill($request->validated());
         $price->save();
 
-        return redirect()->route('prices.edit')->with('alert-success', 'Global operational platform configurations updated.');
+        return redirect()->route('admin.prices.index')->with('status', 'Price settings updated successfully.');
     }
 }

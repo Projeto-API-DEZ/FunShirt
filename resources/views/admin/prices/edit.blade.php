@@ -5,26 +5,31 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <flux:input name="unit_price_catalog" label="Unit Price (Catalog)" type="number" step="0.01" value="{{ old('unit_price_catalog', $price->unit_price_catalog) }}" required />
+                    <label for="unit_price_catalog" class="block text-sm font-medium mb-1 text-zinc-700">Unit Price (Catalog)</label>
+                    <input id="unit_price_catalog" name="unit_price_catalog" type="number" step="0.01" value="{{ old('unit_price_catalog', $price->unit_price_catalog) }}" required class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div>
-                    <flux:input name="unit_price_own" label="Unit Price (Custom)" type="number" step="0.01" value="{{ old('unit_price_own', $price->unit_price_own) }}" required />
+                    <label for="unit_price_own" class="block text-sm font-medium mb-1 text-zinc-700">Unit Price (Custom)</label>
+                    <input id="unit_price_own" name="unit_price_own" type="number" step="0.01" value="{{ old('unit_price_own', $price->unit_price_own) }}" required class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div>
-                    <flux:input name="unit_price_catalog_discount" label="Discount Price (Catalog)" type="number" step="0.01" value="{{ old('unit_price_catalog_discount', $price->unit_price_catalog_discount) }}" required />
+                    <label for="unit_price_catalog_discount" class="block text-sm font-medium mb-1 text-zinc-700">Discount Price (Catalog)</label>
+                    <input id="unit_price_catalog_discount" name="unit_price_catalog_discount" type="number" step="0.01" value="{{ old('unit_price_catalog_discount', $price->unit_price_catalog_discount) }}" required class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div>
-                    <flux:input name="unit_price_own_discount" label="Discount Price (Custom)" type="number" step="0.01" value="{{ old('unit_price_own_discount', $price->unit_price_own_discount) }}" required />
+                    <label for="unit_price_own_discount" class="block text-sm font-medium mb-1 text-zinc-700">Discount Price (Custom)</label>
+                    <input id="unit_price_own_discount" name="unit_price_own_discount" type="number" step="0.01" value="{{ old('unit_price_own_discount', $price->unit_price_own_discount) }}" required class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="md:col-span-2">
-                    <flux:input name="qty_discount" label="Quantity for Discount" type="number" value="{{ old('qty_discount', $price->qty_discount) }}" required />
+                    <label for="qty_discount" class="block text-sm font-medium mb-1 text-zinc-700">Quantity for Discount</label>
+                    <input id="qty_discount" name="qty_discount" type="number" value="{{ old('qty_discount', $price->qty_discount) }}" required class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500">
                     <p class="text-xs text-zinc-500 mt-1">When quantity reaches or exceeds this value, discount prices apply.</p>
                 </div>
             </div>
 
             <div class="mt-6 flex space-x-2">
-                <flux:button type="submit" variant="primary">Update Prices</flux:button>
-                <flux:button href="{{ route('admin.categories.index') }}" variant="ghost">Cancel</flux:button>
+                <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500">Update Prices</button>
+                <a href="{{ route('admin.prices.index') }}" class="inline-flex items-center justify-center rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100">Cancel</a>
             </div>
         </form>
     </div>

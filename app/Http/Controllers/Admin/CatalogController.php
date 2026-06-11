@@ -43,7 +43,16 @@ class CatalogController extends Controller
             abort(403, 'Unauthorized access to custom customer design.');
         }
 
-        $colors = Color::all();
-        return view('catalog.show', compact('tshirtImage', 'colors'));
+        $colors = Color::orderBy('name')->get();
+        $priceConfig = \App\Models\Price::first();
+        $catalogPrice = $priceConfig ? $priceConfig->unit_price_catalog : 0;
+        $sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+        return view('catalog.show', [
+            'image' => $tshirtImage->load('category'),
+            'colors' => $colors,
+            'catalogPrice' => $catalogPrice,
+            'sizes' => $sizes,
+        ]);
     }
 }

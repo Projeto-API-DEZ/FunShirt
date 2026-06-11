@@ -40,6 +40,12 @@ Route::get('user-photo/{path}', function (string $path) {
     return Storage::disk('public')->response($path);
 })->where('path', '.*')->name('user.photo');
 
+Route::get('public-storage/{path}', function (string $path) {
+    abort_unless(Storage::disk('public')->exists($path), 404);
+
+    return Storage::disk('public')->response($path);
+})->where('path', '.*')->name('public.storage');
+
 /*
 |--------------------------------------------------------------------------
 | Authenticated Routes
