@@ -9,13 +9,12 @@ use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Storage;
 
-class OrderStatusUpdate extends Mailable
+class OrderClosedMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public Order $order;
+    public $order;
 
     public function __construct(Order $order)
     {
@@ -25,20 +24,20 @@ class OrderStatusUpdate extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your order status has been updated - FunShirt',
+            subject: 'Your order has been shipped - FunShirt',
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'mails.status_updated',
+            view: 'mails.order-closed',
         );
     }
 
     public function attachments(): array
     {
-        if ($this->order->receipt_url && Storage::disk('private')->exists('pdf_receipts/' . $this->order->receipt_url)) {
+        if ($this->order->receipt_url && \Storage::disk('private')->exists('pdf_receipts/' . $this->order->receipt_url)) {
             return [
                 Attachment::fromStorageDisk('private', 'pdf_receipts/' . $this->order->receipt_url)
                     ->as('receipt.pdf')

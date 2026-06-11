@@ -1,9 +1,13 @@
-<x-layouts::main-content title="Configure T-Shirt" heading="Customize Design" subheading="Select your color, sizing options, and quantities">
-    <div class="max-w-5xl mx-auto py-4">
-        <div class="grid grid-cols-1 gap-8 rounded-xl border border-zinc-200 bg-zinc-50 p-8 shadow-sm md:grid-cols-2">
-            <div id="preview-panel" class="relative flex min-h-[350px] items-center justify-center rounded-xl bg-zinc-100 p-8 shadow-inner">
+<x-layouts::main-content title="Configure T-Shirt" heading="Customize Design" subheading="Select your color, size and quantity">
+    <div class="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 gap-8 rounded-xl border border-zinc-200 bg-zinc-50 p-6 shadow-sm lg:grid-cols-[minmax(0,1fr)_420px]">
+            <div id="preview-panel" class="relative flex min-h-[360px] items-center justify-center rounded-xl bg-zinc-100 p-8 shadow-inner">
                 @if ($image->image_url)
-                    <img src="{{ route('public.storage', ['path' => 'tshirt_images/' . $image->image_url]) }}" alt="{{ $image->name }}" class="z-10 max-h-[280px] max-w-[280px] object-contain">
+                    <img
+                        src="{{ route('public.storage', ['path' => 'tshirt_images/' . $image->image_url]) }}"
+                        alt="{{ $image->name }}"
+                        class="z-10 max-h-[300px] max-w-[300px] object-contain"
+                    >
                 @else
                     <div class="flex h-20 w-20 items-center justify-center rounded-2xl border border-dashed border-zinc-300 text-sm font-medium text-zinc-400">
                         No image
@@ -13,10 +17,10 @@
 
             <div>
                 <div class="mb-6">
-                    <h2 class="text-2xl font-black tracking-tight text-zinc-950">{{ $image->name }}</h2>
-                    <p class="mt-1 text-sm italic text-zinc-500">Category: {{ $image->category?->name ?? 'General' }}</p>
-                    <p class="mt-3 text-sm font-light leading-relaxed text-zinc-600">
-                        {{ $image->description }}
+                    <h2 class="text-2xl font-semibold text-zinc-950">{{ $image->name }}</h2>
+                    <p class="mt-1 text-sm text-zinc-500">{{ $image->category?->name ?? 'General' }}</p>
+                    <p class="mt-4 text-sm leading-6 text-zinc-600">
+                        {{ $image->description ?: 'No description available for this design.' }}
                     </p>
                 </div>
 
@@ -25,8 +29,8 @@
                     <input type="hidden" name="tshirt_image_id" value="{{ $image->id }}">
 
                     <div>
-                        <label class="mb-1.5 block text-sm font-semibold text-zinc-800">Base Shirt Fabric Color</label>
-                        <select name="color_code" id="color_code_selector" required class="w-full rounded-lg border border-zinc-300 bg-white p-2.5 text-sm font-medium shadow-sm focus:ring-2 focus:ring-indigo-500">
+                        <label for="color_code_selector" class="mb-2 block text-sm font-medium text-zinc-800">Color</label>
+                        <select name="color_code" id="color_code_selector" required class="w-full rounded-lg border border-zinc-300 bg-white p-2.5 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500">
                             @foreach ($colors as $color)
                                 <option value="{{ $color->code }}" data-hex="{{ $color->code }}">
                                     {{ $color->name }}
@@ -36,19 +40,19 @@
                     </div>
 
                     <div>
-                        <label class="mb-1.5 block text-sm font-semibold text-zinc-800">Size Dimensions</label>
+                        <label class="mb-2 block text-sm font-medium text-zinc-800">Size</label>
                         <div class="grid grid-cols-3 gap-2 sm:grid-cols-6">
                             @foreach ($sizes as $size)
-                                <label class="block cursor-pointer rounded-lg border border-zinc-300 p-2 text-center text-sm font-bold transition hover:bg-zinc-100">
-                                    <input type="radio" name="size" value="{{ $size }}" required class="peer sr-only">
+                                <label class="cursor-pointer rounded-lg border border-zinc-300 bg-white px-3 py-2 text-center text-sm font-medium transition hover:border-indigo-500 hover:text-indigo-600">
+                                    <input type="radio" name="size" value="{{ $size }}" required class="sr-only peer">
                                     <span class="peer-checked:text-indigo-600">{{ $size }}</span>
                                 </label>
                             @endforeach
                         </div>
                     </div>
 
-                    <div class="w-full sm:w-1/3">
-                        <label for="qty" class="mb-1.5 block text-sm font-semibold text-zinc-800">Quantity Ordered</label>
+                    <div class="max-w-[180px]">
+                        <label for="qty" class="mb-2 block text-sm font-medium text-zinc-800">Quantity</label>
                         <input
                             id="qty"
                             type="number"
@@ -62,16 +66,19 @@
                     </div>
 
                     <div class="flex items-center justify-between rounded-lg bg-zinc-100 p-4">
-                        <span class="text-sm font-medium text-zinc-600">Unit Estimate Price:</span>
-                        <span class="text-2xl font-black text-indigo-600">
-                            €{{ number_format($catalogPrice, 2) }}
+                        <span class="text-sm font-medium text-zinc-600">Current unit price</span>
+                        <span class="text-2xl font-bold text-indigo-600">
+                            &euro;{{ number_format($catalogPrice, 2) }}
                         </span>
                     </div>
 
-                    <div class="pt-2">
-                        <button type="submit" class="inline-flex w-full items-center justify-center rounded-lg bg-indigo-600 px-4 py-3 text-base font-bold text-white transition hover:bg-indigo-500">
-                            Add Customized Combination to Cart
+                    <div class="flex gap-3">
+                        <button type="submit" class="inline-flex flex-1 items-center justify-center rounded-lg bg-indigo-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-500">
+                            Add to Cart
                         </button>
+                        <a href="{{ route('catalog.index') }}" class="inline-flex items-center justify-center rounded-lg border border-zinc-300 bg-white px-4 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100">
+                            Back to Catalog
+                        </a>
                     </div>
                 </form>
             </div>

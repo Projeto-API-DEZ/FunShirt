@@ -25,7 +25,7 @@ class OrderConfirmed extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.orders.confirmed',
+            view: 'mails.orders.confirmed',
         );
     }
 }

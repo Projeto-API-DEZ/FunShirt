@@ -15,6 +15,38 @@ new class extends Component
 
 <nav x-data="{ open: false }" class="border-b backdrop-blur" style="background: var(--app-nav); border-color: var(--app-border); color: var(--app-text);">
     @php($user = auth()->user())
+    @php(
+        $otherLinks = collect([
+            ['label' => 'Catalog', 'href' => route('catalog.index')],
+            ['label' => 'Cart', 'href' => route('cart.show')],
+            ['label' => 'Login', 'href' => route('login'), 'guest' => true],
+            ['label' => 'Register', 'href' => route('register'), 'guest' => true],
+            ['label' => 'Dashboard', 'href' => route('dashboard'), 'auth' => true],
+            ['label' => 'Profile', 'href' => route('profile.edit'), 'auth' => true],
+            ['label' => 'Orders', 'href' => route('orders.index'), 'auth' => true],
+            ['label' => 'Checkout', 'href' => route('checkout.index'), 'auth' => true],
+            ['label' => 'Admin Users', 'href' => route('admin.users.index'), 'admin' => true],
+            ['label' => 'Admin Categories', 'href' => route('admin.categories.index'), 'admin' => true],
+            ['label' => 'Admin Colors', 'href' => route('admin.colors.index'), 'admin' => true],
+            ['label' => 'Admin Designs', 'href' => route('admin.tshirt-images.index'), 'admin' => true],
+            ['label' => 'Admin Prices', 'href' => route('admin.prices.index'), 'admin' => true],
+            ['label' => 'Admin Statistics', 'href' => route('admin.statistics.index'), 'admin' => true],
+        ])->filter(function (array $link) use ($user) {
+            if (($link['guest'] ?? false) && $user) {
+                return false;
+            }
+
+            if (($link['auth'] ?? false) && ! $user) {
+                return false;
+            }
+
+            if (($link['admin'] ?? false) && ! ($user?->isAdmin())) {
+                return false;
+            }
+
+            return true;
+        })->values()
+    )
     <div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <div class="flex items-center gap-3">
             <a href="/" class="flex items-center gap-3" wire:navigate>
@@ -27,9 +59,30 @@ new class extends Component
 
             <div class="hidden items-center gap-2 md:flex">
                 <a href="/" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Home</a>
-                <span class="rounded-full px-3 py-2 text-sm font-medium opacity-70" style="background: var(--app-surface-2); color: var(--app-muted);">Catalog</span>
-                <span class="rounded-full px-3 py-2 text-sm font-medium opacity-70" style="background: var(--app-surface-2); color: var(--app-muted);">Cart</span>
-                <span class="rounded-full px-3 py-2 text-sm font-medium opacity-70" style="background: var(--app-surface-2); color: var(--app-muted);">Orders</span>
+                <a href="{{ route('catalog.index') }}" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Catalog</a>
+                <a href="{{ route('cart.show') }}" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Cart</a>
+                @auth
+                    <a href="{{ route('orders.index') }}" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Orders</a>
+                @endauth
+
+                <x-dropdown align="left" width="w-72" contentClasses="py-1" >
+                    <x-slot name="trigger">
+                        <button class="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5">
+                            <span>Other</span>
+                            <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </x-slot>
+
+                    <x-slot name="content">
+                        @foreach ($otherLinks as $link)
+                            <x-dropdown-link :href="$link['href']" wire:navigate>
+                                {{ $link['label'] }}
+                            </x-dropdown-link>
+                        @endforeach
+                    </x-slot>
+                </x-dropdown>
             </div>
         </div>
 
@@ -135,21 +188,37 @@ new class extends Component
     </div>
 
         <div :class="{'block': open, 'hidden': ! open}" class="hidden border-t sm:hidden" style="border-color: var(--app-border);">
-        <div class="space-y-1 px-4 py-3">
-            <x-responsive-nav-link href="/" wire:navigate>
-                Home
-            </x-responsive-nav-link>
-            @guest
-                <x-responsive-nav-link :href="route('login')" wire:navigate>
-                    {{ __('Login') }}
+            <div class="space-y-1 px-4 py-3">
+                <x-responsive-nav-link href="/" wire:navigate>
+                    Home
                 </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('catalog.index')" wire:navigate>
+                    Catalog
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('cart.show')" wire:navigate>
+                    Cart
+                </x-responsive-nav-link>
+                @auth
+                    <x-responsive-nav-link :href="route('orders.index')" wire:navigate>
+                        Orders
+                    </x-responsive-nav-link>
+                @endauth
+                @guest
+                    <x-responsive-nav-link :href="route('login')" wire:navigate>
+                        {{ __('Login') }}
+                    </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('register')" wire:navigate>
                     {{ __('Register') }}
                 </x-responsive-nav-link>
             @endguest
-            <div class="rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);">Catalog</div>
-            <div class="rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);">Cart</div>
-            <div class="rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);">Orders</div>
+            <div class="rounded-xl px-3 py-2 text-sm font-semibold" style="background: var(--app-surface-2); color: var(--app-text);">Other</div>
+            <div class="space-y-1">
+                @foreach ($otherLinks as $link)
+                    <x-responsive-nav-link :href="$link['href']" wire:navigate>
+                        {{ $link['label'] }}
+                    </x-responsive-nav-link>
+                @endforeach
+            </div>
         </div>
 
         @auth
