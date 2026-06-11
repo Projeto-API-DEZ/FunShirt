@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 #[Fillable(['status', 'customer_id', 'date', 'notes', 'nif', 'address', 'payment_type', 'payment_ref', 'receipt_url', 'total_price', 'reason_for_cancellation'])]
 class Order extends Model
@@ -29,8 +30,8 @@ class Order extends Model
     protected static function booted()
     {
         static::created(function ($order) {
-            Mail::to($order->customer->user->email)->send(new OrderConfirmed($order));
-            Mail::to($order->customer->user->email)->send(new OrderPendingMail($order));
+            static::sendMailSafely($order, new OrderConfirmed($order));
+            static::sendMailSafely($order, new OrderPendingMail($order));
         });
 
         static::updated(function ($order) {
@@ -43,13 +44,27 @@ class Order extends Model
                     ReceiptHelper::generate($order);
                 }
 
-                Mail::to($order->customer->user->email)->send(new OrderClosedMail($order));
-                Mail::to($order->customer->user->email)->send(new OrderStatusUpdate($order));
+                static::sendMailSafely($order, new OrderClosedMail($order));
+                static::sendMailSafely($order, new OrderStatusUpdate($order));
             }
 
             if ($order->status === 'canceled') {
-                Mail::to($order->customer->user->email)->send(new OrderStatusUpdate($order));
+                static::sendMailSafely($order, new OrderStatusUpdate($order));
             }
         });
+    }
+
+    protected static function sendMailSafely(Order $order, object $mailable): void
+    {
+        try {
+            Mail::to($order->customer->user->email)->send($mailable);
+        } catch (Throwable $exception) {
+            report($exception);
+            logger()->warning('Order email send failed.', [
+                'order_id' => $order->id,
+                'mailable' => $mailable::class,
+                'message' => $exception->getMessage(),
+            ]);
+        }
     }
 }

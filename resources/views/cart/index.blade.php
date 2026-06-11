@@ -45,7 +45,7 @@
                                             @endforeach
                                         </select>
                                         <select name="size" class="rounded border border-zinc-300 bg-white px-2 py-1 text-sm" onchange="this.form.submit()">
-                                            @foreach (['XS', 'S', 'M', 'L', 'XL', 'XXL'] as $size)
+                                            @foreach (['XS', 'S', 'M', 'L', 'XL'] as $size)
                                                 <option value="{{ $size }}" @selected($item['size'] === $size)>{{ $size }}</option>
                                             @endforeach
                                         </select>

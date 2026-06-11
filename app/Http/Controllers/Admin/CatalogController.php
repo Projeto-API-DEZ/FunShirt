@@ -46,7 +46,7 @@ class CatalogController extends Controller
         $colors = Color::orderBy('name')->get();
         $priceConfig = \App\Models\Price::first();
         $catalogPrice = $priceConfig ? $priceConfig->unit_price_catalog : 0;
-        $sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+        $sizes = ['XS', 'S', 'M', 'L', 'XL'];
 
         return view('catalog.show', [
             'image' => $tshirtImage->load('category'),

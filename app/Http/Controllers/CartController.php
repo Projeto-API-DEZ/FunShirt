@@ -41,7 +41,7 @@ class CartController extends Controller
 
         $request->validate([
             'color_code' => 'required|exists:colors,code',
-            'size'       => 'required|in:XS,S,M,L,XL,XXL',
+            'size'       => 'required|in:XS,S,M,L,XL',
             'qty'        => 'required|integer|min:1',
         ]);
 
@@ -97,7 +97,7 @@ class CartController extends Controller
         $request->validate([
             'qty'        => 'sometimes|integer|min:0',
             'color_code' => 'sometimes|exists:colors,code',
-            'size'       => 'sometimes|in:XS,S,M,L,XL,XXL',
+            'size'       => 'sometimes|in:XS,S,M,L,XL',
         ]);
 
         // Update quantity (if zero, remove item)

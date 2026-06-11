@@ -42,7 +42,7 @@ class CheckoutController extends Controller
         $orderItemsData = [];
         foreach ($cart as $item) {
             if ($item['is_custom']) {
-                $unitPrice = $useDiscount ? $pricing->unit_price_custom_discount : $pricing->unit_price_custom;
+                $unitPrice = $useDiscount ? $pricing->unit_price_own_discount : $pricing->unit_price_own;
             } else {
                 $unitPrice = $useDiscount ? $pricing->unit_price_catalog_discount : $pricing->unit_price_catalog;
             }
@@ -64,6 +64,7 @@ class CheckoutController extends Controller
             $order = Order::create([
                 'customer_id' => $user->id,
                 'status' => 'pending',
+                'date' => now()->toDateString(),
                 'total_price' => $totalPrice,
                 'notes' => $validated['notes'] ?? null,
                 'nif' => $validated['nif'],
