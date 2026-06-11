@@ -7,9 +7,7 @@ Your order #{{ $order->id }} has been received and is now **pending** processing
 
 We will notify you once your items are shipped.
 
-**Order total:** €{{ number_format($order->total_price, 2) }}
-
-Thank you for shopping at FunShirt!
+**Order total:** &euro;{{ number_format($order->total_price, 2) }}
 
 <x-mail::button :url="route('orders.show', $order)">
 View Order Details

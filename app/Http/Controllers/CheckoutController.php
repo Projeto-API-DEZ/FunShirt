@@ -65,6 +65,7 @@ class CheckoutController extends Controller
                 'customer_id' => $user->id,
                 'status' => 'pending',
                 'total_price' => $totalPrice,
+                'notes' => $validated['notes'] ?? null,
                 'nif' => $validated['nif'],
                 'address' => $validated['address'],
                 'payment_type' => $validated['payment_type'],

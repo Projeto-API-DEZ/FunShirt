@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 
 class OrderController extends Controller
 {
@@ -53,41 +52,34 @@ class OrderController extends Controller
             'reason_for_cancellation' => 'required_if:status,canceled|string|nullable',
         ]);
 
-        $oldStatus = $order->status;
         $order->status = $request->status;
 
         if ($request->status === 'canceled') {
             $order->reason_for_cancellation = $request->reason_for_cancellation;
-        }
-
-        if ($request->status === 'closed' && $oldStatus !== 'closed') {
-            // Generate a dummy receipt PDF if no real PDF library is found
-            // In a real scenario, we would use DomPDF or similar here.
-            $receiptName = 'receipt_' . $order->id . '_' . Str::random(10) . '.pdf';
-            $content = "FUNSHIRT RECEIPT\nOrder #" . $order->id . "\nCustomer: " . $order->customer->user->name . "\nTotal: " . $order->total_price;
-            Storage::disk('local')->put("receipts/" . $receiptName, $content);
-            $order->receipt_url = $receiptName;
+        } else {
+            $order->reason_for_cancellation = null;
         }
 
         $order->save();
 
-        // Notify customer about status change
-        Mail::to($order->customer->user->email)->send(new OrderStatusUpdated($order));
-
         return back()->with('alert-success', "Order tracking status updated to {$request->status}.");
     }
 
-    public function downloadReceipt(Order $order)
+    public function cancel(Order $order)
     {
         $user = Auth::user();
-        if ($user->isCustomer() && $order->customer_id !== $user->id) {
-            abort(403, 'Unauthorized access to invoice receipt.');
+
+        if (! $user || ! $user->can('cancel', $order)) {
+            abort(403, 'Unauthorized operation action.');
         }
 
-        if (!$order->receipt_url || !Storage::disk('local')->exists("receipts/{$order->receipt_url}")) {
-            abort(404, 'Receipt invoice file not found.');
-        }
+        $order->update([
+            'status' => 'canceled',
+            'reason_for_cancellation' => $order->reason_for_cancellation ?: 'Canceled by user.',
+        ]);
 
-        return Storage::disk('local')->download("receipts/{$order->receipt_url}", "Receipt-Order-{$order->id}.pdf");
+        return redirect()
+            ->route('orders.show', $order)
+            ->with('alert-success', 'Order canceled successfully.');
     }
 }

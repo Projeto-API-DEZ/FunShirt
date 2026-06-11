@@ -31,7 +31,7 @@ class OrderClosedMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'mails.order-closed',
+            view: 'mails.orders.order_closed',
         );
     }
 

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Helpers\ReceiptHelper;
 use App\Mail\OrderConfirmed;
+use App\Mail\OrderClosedMail;
+use App\Mail\OrderPendingMail;
 use App\Mail\OrderStatusUpdate;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -28,13 +30,24 @@ class Order extends Model
     {
         static::created(function ($order) {
             Mail::to($order->customer->user->email)->send(new OrderConfirmed($order));
+            Mail::to($order->customer->user->email)->send(new OrderPendingMail($order));
         });
 
         static::updated(function ($order) {
-            if ($order->wasChanged('status') && $order->status === 'closed') {
-                if (!$order->receipt_url) {
+            if (! $order->wasChanged('status')) {
+                return;
+            }
+
+            if ($order->status === 'closed') {
+                if (! $order->receipt_url) {
                     ReceiptHelper::generate($order);
                 }
+
+                Mail::to($order->customer->user->email)->send(new OrderClosedMail($order));
+                Mail::to($order->customer->user->email)->send(new OrderStatusUpdate($order));
+            }
+
+            if ($order->status === 'canceled') {
                 Mail::to($order->customer->user->email)->send(new OrderStatusUpdate($order));
             }
         });

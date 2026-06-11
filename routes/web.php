@@ -1,19 +1,19 @@
 <?php
 
-use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Controllers\Admin\CatalogController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\ColorController;
+use App\Http\Controllers\Admin\PriceController;
 use App\Http\Controllers\Admin\StatisticsController;
-use App\Http\Controllers\Customer\ProfileController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\Admin\TshirtImageController;
+use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\OrderController;
-use App\Http\Controllers\TshirtImageController;
-use App\Http\Controllers\PriceController;
-use App\Http\Controllers\ColorController;
-use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ReceiptController;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -78,9 +78,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/{order}/status', [OrderController::class, 'updateStatus'])->name('updateStatus');
         Route::post('/{order}/cancel', [OrderController::class, 'cancel'])->name('cancel')->middleware('can:cancel,order');
     });
-
-    // Custom
-    Route::resource('tshirt-images', TshirtImageController::class);
 
     /*
     |--------------------------------------------------------------------------

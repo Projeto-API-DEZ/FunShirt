@@ -32,7 +32,7 @@ class OrderStatusUpdate extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'mails.status_updated',
+            view: 'mails.orders.order_status_update',
         );
     }
 

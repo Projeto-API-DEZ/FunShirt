@@ -19,7 +19,7 @@
 <body>
     <div class="header">
         <div class="logo">FunShirt</div>
-        <div class="company">Custom T‑shirts Studio</div>
+        <div class="company">Custom T-Shirts Studio</div>
     </div>
 
     <div class="customer-info">
@@ -30,35 +30,41 @@
 
     <div class="order-info">
         <strong>Order #:</strong> {{ $order->id }}<br>
-        <strong>Date:</strong> {{ $order->date->format('d/m/Y') }}<br>
+        <strong>Date:</strong> {{ optional($order->date)->format('d/m/Y') ?? optional($order->created_at)->format('d/m/Y') }}<br>
         <strong>Status:</strong> {{ ucfirst($order->status) }}
     </div>
 
     <h3>Items</h3>
     <table>
         <thead>
-            <tr><th>Item</th><th>Color / Size</th><th>Qty</th><th>Unit Price</th><th>Subtotal</th></tr>
+            <tr>
+                <th>Item</th>
+                <th>Color / Size</th>
+                <th>Qty</th>
+                <th>Unit Price</th>
+                <th>Subtotal</th>
+            </tr>
         </thead>
         <tbody>
-            @foreach($order->items as $item)
-            <tr>
-                <td>{{ $item->tshirtImage->name }}</td>
-                <td>{{ $item->color_code }} / {{ $item->size }}</td>
-                <td>{{ $item->qty }}</td>
-                <td>€{{ number_format($item->unit_price, 2) }}</td>
-                <td>€{{ number_format($item->sub_total, 2) }}</td>
-            </tr>
+            @foreach ($order->items as $item)
+                <tr>
+                    <td>{{ $item->tshirtImage->name }}</td>
+                    <td>{{ $item->color_code }} / {{ $item->size }}</td>
+                    <td>{{ $item->qty }}</td>
+                    <td>&euro;{{ number_format($item->unit_price, 2) }}</td>
+                    <td>&euro;{{ number_format($item->sub_total, 2) }}</td>
+                </tr>
             @endforeach
         </tbody>
     </table>
 
     <div class="total">
-        Total: €{{ number_format($order->total_price, 2) }}
+        Total: &euro;{{ number_format($order->total_price, 2) }}
     </div>
 
     <div class="footer">
         Thank you for your purchase!<br>
-        FunShirt – Your style, your shirt.
+        FunShirt - Your style, your shirt.
     </div>
 </body>
 </html>

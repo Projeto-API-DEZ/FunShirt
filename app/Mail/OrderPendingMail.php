@@ -30,7 +30,7 @@ class OrderPendingMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'mails.order-pending',
+            view: 'mails.orders.order_pending',
         );
     }
 }

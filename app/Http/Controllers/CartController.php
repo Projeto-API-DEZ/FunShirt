@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\TshirtImage;
-use App\Models\Color;
 use App\Models\Price;
 use Illuminate\Http\Request;
 
@@ -17,16 +16,24 @@ class CartController extends Controller
         $cart = session()->get('cart', []);
         $total = 0;
         foreach ($cart as $item) {
-            $total += $item['subtotal'];
+            $total += $item['sub_total'];
         }
+
         return view('cart.index', compact('cart', 'total'));
+    }
+
+    public function show()
+    {
+        return $this->index();
     }
 
     /**
      * Add an item to the cart (catalog image only).
      */
-    public function add(Request $request, TshirtImage $tshirtImage)
+    public function add(Request $request, ?TshirtImage $tshirtImage = null)
     {
+        $tshirtImage ??= TshirtImage::findOrFail($request->input('tshirt_image_id'));
+
         // Only catalog images allowed here
         if ($tshirtImage->customer_id !== null) {
             abort(403, 'Custom images must be added via their own route.');
@@ -34,15 +41,15 @@ class CartController extends Controller
 
         $request->validate([
             'color_code' => 'required|exists:colors,code',
-            'size'       => 'required|in:XS,S,M,L,XL',
-            'quantity'   => 'required|integer|min:1',
+            'size'       => 'required|in:XS,S,M,L,XL,XXL',
+            'qty'        => 'required|integer|min:1',
         ]);
 
         $priceConfig = Price::first();
-        $quantity = (int) $request->quantity;
+        $qty = (int) $request->qty;
 
         // Determine unit price (with discount if quantity >= threshold)
-        $unitPrice = $this->getUnitPrice($priceConfig, 'catalog', $quantity);
+        $unitPrice = $this->getUnitPrice($priceConfig, 'catalog', $qty);
 
         // Unique key for cart item: type_id_color_size
         $key = "catalog_{$tshirtImage->id}_{$request->color_code}_{$request->size}";
@@ -51,26 +58,28 @@ class CartController extends Controller
 
         if (isset($cart[$key])) {
             // Update existing item
-            $cart[$key]['quantity'] += $quantity;
-            $cart[$key]['subtotal'] = $cart[$key]['quantity'] * $cart[$key]['unit_price'];
+            $cart[$key]['qty'] += $qty;
+            $cart[$key]['sub_total'] = $cart[$key]['qty'] * $cart[$key]['unit_price'];
         } else {
             // Add new item
             $cart[$key] = [
-                'type'       => 'catalog',
-                'id'         => $tshirtImage->id,
-                'name'       => $tshirtImage->name,
-                'image_url'  => $tshirtImage->image_url,
-                'color_code' => $request->color_code,
-                'size'       => $request->size,
-                'quantity'   => $quantity,
-                'unit_price' => $unitPrice,
-                'subtotal'   => $quantity * $unitPrice,
+                'type'            => 'catalog',
+                'is_custom'       => false,
+                'id'              => $tshirtImage->id,
+                'tshirt_image_id' => $tshirtImage->id,
+                'name'            => $tshirtImage->name,
+                'image_url'       => $tshirtImage->image_url,
+                'color_code'      => $request->color_code,
+                'size'            => $request->size,
+                'qty'             => $qty,
+                'unit_price'      => $unitPrice,
+                'sub_total'       => $qty * $unitPrice,
             ];
         }
 
         session()->put('cart', $cart);
 
-        return redirect()->route('cart.index')->with('success', 'Item added to cart.');
+        return redirect()->route('cart.show')->with('success', 'Item added to cart.');
     }
 
     /**
@@ -80,30 +89,30 @@ class CartController extends Controller
     {
         $cart = session()->get('cart', []);
         if (!isset($cart[$key])) {
-            return redirect()->route('cart.index')->with('error', 'Item not found.');
+            return redirect()->route('cart.show')->with('error', 'Item not found.');
         }
 
         $item = &$cart[$key];
 
         $request->validate([
-            'quantity'   => 'sometimes|integer|min:0',
+            'qty'        => 'sometimes|integer|min:0',
             'color_code' => 'sometimes|exists:colors,code',
-            'size'       => 'sometimes|in:XS,S,M,L,XL',
+            'size'       => 'sometimes|in:XS,S,M,L,XL,XXL',
         ]);
 
         // Update quantity (if zero, remove item)
-        if ($request->has('quantity')) {
-            $newQty = (int) $request->quantity;
+        if ($request->has('qty')) {
+            $newQty = (int) $request->qty;
             if ($newQty <= 0) {
                 unset($cart[$key]);
                 session()->put('cart', $cart);
-                return redirect()->route('cart.index')->with('success', 'Item removed.');
+                return redirect()->route('cart.show')->with('success', 'Item removed.');
             }
-            $item['quantity'] = $newQty;
+            $item['qty'] = $newQty;
             // Recalculate unit price (discount might change)
             $priceConfig = Price::first();
             $item['unit_price'] = $this->getUnitPrice($priceConfig, $item['type'], $newQty);
-            $item['subtotal'] = $newQty * $item['unit_price'];
+            $item['sub_total'] = $newQty * $item['unit_price'];
         }
 
         // Update color
@@ -118,7 +127,7 @@ class CartController extends Controller
 
         session()->put('cart', $cart);
 
-        return redirect()->route('cart.index')->with('success', 'Cart updated.');
+        return redirect()->route('cart.show')->with('success', 'Cart updated.');
     }
 
     /**
@@ -131,7 +140,7 @@ class CartController extends Controller
             unset($cart[$key]);
             session()->put('cart', $cart);
         }
-        return redirect()->route('cart.index')->with('success', 'Item removed.');
+        return redirect()->route('cart.show')->with('success', 'Item removed.');
     }
 
     /**
@@ -140,7 +149,7 @@ class CartController extends Controller
     public function clear()
     {
         session()->forget('cart');
-        return redirect()->route('cart.index')->with('success', 'Cart cleared.');
+        return redirect()->route('cart.show')->with('success', 'Cart cleared.');
     }
 
     /**
@@ -157,11 +166,10 @@ class CartController extends Controller
 
         $cart = session()->get('cart', []);
         if (empty($cart)) {
-            return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
+            return redirect()->route('cart.show')->with('error', 'Your cart is empty.');
         }
 
-        // Redirect to order creation (G4)
-        return redirect()->route('orders.create');
+        return redirect()->route('checkout.index');
     }
 
     /**
