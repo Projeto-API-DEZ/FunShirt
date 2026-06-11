@@ -41,4 +41,22 @@
             </form>
         </div>
     </div>
+
+    <script>
+        document.querySelectorAll('[data-password-toggle]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const input = document.getElementById(button.dataset.target);
+
+                if (!input) {
+                    return;
+                }
+
+                const showPassword = input.type === 'password';
+                input.type = showPassword ? 'text' : 'password';
+                button.setAttribute('aria-pressed', showPassword ? 'true' : 'false');
+                button.querySelector('[data-eye-open]')?.classList.toggle('hidden', showPassword);
+                button.querySelector('[data-eye-closed]')?.classList.toggle('hidden', !showPassword);
+            });
+        });
+    </script>
 </x-app-layout>

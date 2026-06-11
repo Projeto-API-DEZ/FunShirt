@@ -14,7 +14,7 @@ class ProfileController extends Controller
     {
         $user = Auth::user()->load('customer');
 
-        return view('customer.profile', compact('user'));
+        return view('profile', compact('user'));
     }
 
     public function update(ProfileUpdateFormRequest $request)

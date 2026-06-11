@@ -149,13 +149,13 @@
                     <div class="overflow-x-auto" style="padding: 0;">
                         <table class="w-full table-fixed">
                             <colgroup>
-                                <col class="w-[20%]">
+                                <col class="w-[24%]">
                                 <col class="w-[9%]">
                                 <col class="w-[7%]">
                                 <col class="w-[10%]">
                                 <col class="w-[10%]">
                                 <col class="w-[10%]">
-                                <col class="w-[34%]">
+                                <col class="w-[30%]">
                             </colgroup>
                             <thead style="background: var(--app-surface-2);">
                                 <tr class="text-left text-xs font-semibold uppercase tracking-[0.16em]" style="color: var(--app-muted);">
@@ -166,7 +166,7 @@
                                     <th class="px-4 py-4">Status</th>
                                     <th class="px-4 py-4">Created</th>
                                     <th class="px-3 py-4">
-                                        <div class="flex items-center justify-between gap-3 whitespace-nowrap">
+                                        <div class="flex items-center justify-end whitespace-nowrap" style="gap: 50px; padding-right: 50px;">
                                             <div class="shrink-0 text-left">
                                                 Actions
                                             </div>
@@ -204,15 +204,15 @@
                                 @foreach ($users as $user)
                                     <tr class="border-t align-top" style="border-color: var(--app-border);">
                                         <td class="px-6 py-5">
-                                            <div class="flex min-w-0 items-center gap-4">
-                                                <div class="flex shrink-0 items-center justify-center overflow-hidden rounded-full border text-sm font-semibold uppercase leading-none" style="width: 50px; height: 50px; min-width: 50px; min-height: 50px; max-width: 50px; max-height: 50px; border-color: var(--app-border); background: {{ $user->hasUploadedPhoto() ? 'transparent' : '#4f46e5' }}; color: {{ $user->hasUploadedPhoto() ? 'transparent' : '#ffffff' }};">
+                                                <div class="flex min-w-0 items-center gap-4">
+                                                    <div class="flex shrink-0 items-center justify-center overflow-hidden rounded-full border text-sm font-semibold uppercase leading-none" style="width: 50px; height: 50px; min-width: 50px; min-height: 50px; max-width: 50px; max-height: 50px; border-color: var(--app-border); background: {{ $user->hasUploadedPhoto() ? 'transparent' : '#4f46e5' }}; color: {{ $user->hasUploadedPhoto() ? 'transparent' : '#ffffff' }};">
                                                     @if ($user->hasUploadedPhoto())
                                                         <img src="{{ $user->photoFullUrl }}" alt="" class="block object-cover object-center" style="width: 50px; height: 50px; min-width: 50px; min-height: 50px; max-width: 50px; max-height: 50px;">
                                                     @else
                                                         {{ $user->initials() }}
                                                     @endif
                                                 </div>
-                                                <div class="min-w-0 flex-1 overflow-hidden">
+                                                <div class="min-w-0 max-w-[300px] flex-1 overflow-hidden lg:max-w-[360px]">
                                                     <p class="truncate text-sm font-semibold" style="color: var(--app-text);" title="{{ $user->name }}">{{ $user->name }}</p>
                                                     <p class="truncate text-sm" style="color: var(--app-muted);" title="{{ $user->email }}">{{ $user->email }}</p>
                                                 </div>
@@ -238,7 +238,7 @@
                                             {{ optional($user->created_at)->format('Y-m-d') ?: '-' }}
                                         </td>
                                         <td class="px-6 py-5">
-                                            <div class="flex flex-wrap gap-2">
+                                            <div class="flex flex-wrap justify-end gap-2" style="padding-right: 50px;">
                                                 <a href="{{ route('admin.users.show', $user) }}" class="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium" style="background: var(--app-surface-2); color: var(--app-muted);" wire:navigate>
                                                     Show
                                                 </a>

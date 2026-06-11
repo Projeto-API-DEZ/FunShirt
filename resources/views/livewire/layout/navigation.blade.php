@@ -27,15 +27,6 @@ new class extends Component
 
             <div class="hidden items-center gap-2 md:flex">
                 <a href="/" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Home</a>
-                @auth
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
-                    <a href="{{ route('profile.edit') }}" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Profile</a>
-                @else
-                    <a href="{{ route('login') }}" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Login</a>
-                    <a href="{{ route('register') }}" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Register</a>
-                @endauth
                 <span class="rounded-full px-3 py-2 text-sm font-medium opacity-70" style="background: var(--app-surface-2); color: var(--app-muted);">Catalog</span>
                 <span class="rounded-full px-3 py-2 text-sm font-medium opacity-70" style="background: var(--app-surface-2); color: var(--app-muted);">Cart</span>
                 <span class="rounded-full px-3 py-2 text-sm font-medium opacity-70" style="background: var(--app-surface-2); color: var(--app-muted);">Orders</span>
@@ -143,26 +134,19 @@ new class extends Component
         </div>
     </div>
 
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden border-t sm:hidden" style="border-color: var(--app-border);">
+        <div :class="{'block': open, 'hidden': ! open}" class="hidden border-t sm:hidden" style="border-color: var(--app-border);">
         <div class="space-y-1 px-4 py-3">
             <x-responsive-nav-link href="/" wire:navigate>
                 Home
             </x-responsive-nav-link>
-            @auth
-                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
-                    {{ __('Dashboard') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('profile.edit')" wire:navigate>
-                    {{ __('Profile') }}
-                </x-responsive-nav-link>
-            @else
+            @guest
                 <x-responsive-nav-link :href="route('login')" wire:navigate>
                     {{ __('Login') }}
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('register')" wire:navigate>
                     {{ __('Register') }}
                 </x-responsive-nav-link>
-            @endauth
+            @endguest
             <div class="rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);">Catalog</div>
             <div class="rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);">Cart</div>
             <div class="rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);">Orders</div>
@@ -200,6 +184,7 @@ new class extends Component
             </div>
 
             <div class="mt-3 space-y-1">
+                <a href="{{ route('profile.edit') }}" class="block rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-text);" wire:navigate>Profile</a>
                 @if ($user->isAdmin())
                     <a href="{{ route('admin.users.index') }}" class="block rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);" wire:navigate>User Management</a>
                 @elseif ($user->isStaff())
