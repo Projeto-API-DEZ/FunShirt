@@ -14,16 +14,18 @@ class CartController extends Controller
     {
         $cart = session()->get('cart', []);
         $pricing = Price::first();
+        
         $totalQuantity = array_sum(array_column($cart, 'qty'));
         $useDiscount = $pricing && $totalQuantity >= $pricing->qty_discount;
 
         $totalPrice = 0;
         foreach ($cart as $key => $item) {
             if ($item['is_custom']) {
-                $unitPrice = $useDiscount ? $pricing->unit_price_custom_discount : $pricing->unit_price_custom;
+                $unitPrice = $useDiscount ? $pricing->unit_price_own_discount : $pricing->unit_price_own;
             } else {
                 $unitPrice = $useDiscount ? $pricing->unit_price_catalog_discount : $pricing->unit_price_catalog;
             }
+            
             $cart[$key]['unit_price'] = $unitPrice;
             $cart[$key]['sub_total'] = $unitPrice * $item['qty'];
             $totalPrice += $cart[$key]['sub_total'];
@@ -54,28 +56,31 @@ class CartController extends Controller
                 'color_code' => $color->code,
                 'color_name' => $color->name,
                 'size' => $validated['size'],
-                'qty' => $validated['qty'],
+                'qty' => $validated['qty']
             ];
         }
 
         session()->put('cart', $cart);
-
-        return redirect()->route('cart.index')->with('alert-success', 'Item added to your shopping cart.');
+        return redirect()->route('cart.show')->with('alert-success', 'Item added to your shopping cart.');
     }
 
     public function update(Request $request, $key)
     {
-        $request->validate(['qty' => 'required|integer|min:1|max:100']);
+        $request->validate(['qty' => 'required|integer|min:0|max:100']);
         $cart = session()->get('cart', []);
 
         if (isset($cart[$key])) {
+            if ($request->qty <= 0) {
+                unset($cart[$key]);
+                session()->put('cart', $cart);
+                return redirect()->route('cart.show')->with('alert-success', 'Item removed from cart.');
+            }
             $cart[$key]['qty'] = $request->qty;
             session()->put('cart', $cart);
-
-            return redirect()->route('cart.index')->with('alert-success', 'Cart quantities updated.');
+            return redirect()->route('cart.show')->with('alert-success', 'Cart quantities updated.');
         }
 
-        return redirect()->route('cart.index')->with('alert-danger', 'Item not found inside the current session.');
+        return redirect()->route('cart.show')->with('alert-danger', 'Item not found inside the current session.');
     }
 
     public function destroy($key)
@@ -85,11 +90,10 @@ class CartController extends Controller
         if (isset($cart[$key])) {
             unset($cart[$key]);
             session()->put('cart', $cart);
-
-            return redirect()->route('cart.index')->with('alert-success', 'Item discarded from cart.');
+            return redirect()->route('cart.show')->with('alert-success', 'Item discarded from cart.');
         }
 
-        return redirect()->route('cart.index')->with('alert-danger', 'Item not found inside the current session.');
+        return redirect()->route('cart.show')->with('alert-danger', 'Item not found inside the current session.');
     }
 
     public function clear()

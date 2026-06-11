@@ -4,7 +4,7 @@
     'subheading' => null
 ])
 
-<x-layouts.app>
+<x-app-layout>
     @if($title) @section('title', " - {$title}") @endif
 
     <div class="max-w-7xl mx-auto space-y-6">
@@ -23,4 +23,4 @@
             {{ $slot }}
         </div>
     </div>
-</x-layouts.app>
+</x-app-layout>

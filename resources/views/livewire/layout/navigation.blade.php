@@ -27,10 +27,15 @@ new class extends Component
 
             <div class="hidden items-center gap-2 md:flex">
                 <a href="/" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Home</a>
-                <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
-                    {{ __('Dashboard') }}
-                </x-nav-link>
-                <a href="{{ route('profile') }}" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Profile</a>
+                @auth
+                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
+                        {{ __('Dashboard') }}
+                    </x-nav-link>
+                    <a href="{{ route('profile.edit') }}" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Profile</a>
+                @else
+                    <a href="{{ route('login') }}" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Login</a>
+                    <a href="{{ route('register') }}" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Register</a>
+                @endauth
                 <span class="rounded-full px-3 py-2 text-sm font-medium opacity-70" style="background: var(--app-surface-2); color: var(--app-muted);">Catalog</span>
                 <span class="rounded-full px-3 py-2 text-sm font-medium opacity-70" style="background: var(--app-surface-2); color: var(--app-muted);">Cart</span>
                 <span class="rounded-full px-3 py-2 text-sm font-medium opacity-70" style="background: var(--app-surface-2); color: var(--app-muted);">Orders</span>
@@ -48,7 +53,8 @@ new class extends Component
                 <span data-theme-label>Light</span>
             </button>
 
-                <x-dropdown align="right" width="48">
+                @auth
+                    <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                     <button class="inline-flex items-center gap-3 rounded-full border px-3 py-2 text-sm font-medium transition" style="background: var(--app-surface); border-color: var(--app-border); color: var(--app-text);">
                         @if($user->hasUploadedPhoto())
@@ -84,7 +90,7 @@ new class extends Component
                 </x-slot>
 
                 <x-slot name="content">
-                    <x-dropdown-link :href="route('profile')" wire:navigate>
+                    <x-dropdown-link :href="route('profile.edit')" wire:navigate>
                         {{ __('Profile') }}
                     </x-dropdown-link>
 
@@ -108,7 +114,13 @@ new class extends Component
                         </x-dropdown-link>
                     </button>
                 </x-slot>
-            </x-dropdown>
+                    </x-dropdown>
+                @else
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('login') }}" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Login</a>
+                        <a href="{{ route('register') }}" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Register</a>
+                    </div>
+                @endauth
         </div>
 
         <div class="flex items-center gap-2 sm:hidden">
@@ -136,17 +148,27 @@ new class extends Component
             <x-responsive-nav-link href="/" wire:navigate>
                 Home
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('profile')" wire:navigate>
-                {{ __('Profile') }}
-            </x-responsive-nav-link>
+            @auth
+                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
+                    {{ __('Dashboard') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('profile.edit')" wire:navigate>
+                    {{ __('Profile') }}
+                </x-responsive-nav-link>
+            @else
+                <x-responsive-nav-link :href="route('login')" wire:navigate>
+                    {{ __('Login') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('register')" wire:navigate>
+                    {{ __('Register') }}
+                </x-responsive-nav-link>
+            @endauth
             <div class="rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);">Catalog</div>
             <div class="rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);">Cart</div>
             <div class="rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);">Orders</div>
         </div>
 
+        @auth
         <div class="border-t px-4 py-4" style="border-color: var(--app-border);">
             <div class="flex items-center gap-3">
                 @if($user->hasUploadedPhoto())
@@ -192,6 +214,7 @@ new class extends Component
                 </button>
             </div>
         </div>
+        @endauth
     </div>
 </nav>
 

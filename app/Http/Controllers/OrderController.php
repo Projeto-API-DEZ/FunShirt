@@ -49,11 +49,30 @@ class OrderController extends Controller
         }
 
         $request->validate([
-            'status' => 'required|in:pending,paid,closed,canceled',
+            'status' => 'required|in:pending,closed,canceled',
+            'reason_for_cancellation' => 'required_if:status,canceled|string|nullable',
         ]);
 
+        $oldStatus = $order->status;
         $order->status = $request->status;
+
+        if ($request->status === 'canceled') {
+            $order->reason_for_cancellation = $request->reason_for_cancellation;
+        }
+
+        if ($request->status === 'closed' && $oldStatus !== 'closed') {
+            // Generate a dummy receipt PDF if no real PDF library is found
+            // In a real scenario, we would use DomPDF or similar here.
+            $receiptName = 'receipt_' . $order->id . '_' . Str::random(10) . '.pdf';
+            $content = "FUNSHIRT RECEIPT\nOrder #" . $order->id . "\nCustomer: " . $order->customer->user->name . "\nTotal: " . $order->total_price;
+            Storage::disk('local')->put("receipts/" . $receiptName, $content);
+            $order->receipt_url = $receiptName;
+        }
+
         $order->save();
+
+        // Notify customer about status change
+        Mail::to($order->customer->user->email)->send(new OrderStatusUpdated($order));
 
         return back()->with('alert-success', "Order tracking status updated to {$request->status}.");
     }

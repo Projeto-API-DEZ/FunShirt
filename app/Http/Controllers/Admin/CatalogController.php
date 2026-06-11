@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\TshirtImage;
 use App\Models\Category;
 use App\Models\Color;
@@ -27,9 +28,13 @@ class CatalogController extends Controller
             });
         }
 
-        $tshirts = $query->latest()->paginate(12)->withQueryString();
+        $images = $query->latest()->paginate(12)->withQueryString();
 
-        return view('catalog.index', compact('tshirts', 'categories', 'colors'));
+        // Get current catalog price
+        $priceConfig = \App\Models\Price::first();
+        $catalogPrice = $priceConfig ? $priceConfig->unit_price_catalog : 0;
+
+        return view('catalog.index', compact('images', 'categories', 'colors', 'catalogPrice'));
     }
 
     public function show(TshirtImage $tshirtImage)
