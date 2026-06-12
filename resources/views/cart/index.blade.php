@@ -23,44 +23,91 @@
                     </thead>
                     <tbody class="divide-y divide-zinc-200">
                         @foreach ($cart as $key => $item)
+                            @php($detailUrl = $item['type'] === 'catalog' ? route('catalog.show', $item['tshirt_image_id']) : null)
+                            @php($itemColor = '#' . ltrim((string) ($item['color_code'] ?? 'e4e4e7'), '#'))
                             <tr>
                                 <td class="px-4 py-4">
                                     <div class="flex items-center gap-3">
-                                        <img src="{{ route('public.storage', ['path' => 'tshirt_images/' . $item['image_url']]) }}" alt="{{ $item['name'] }}" class="h-14 w-14 rounded-lg object-cover">
+                                        @if ($detailUrl)
+                                            <a href="{{ $detailUrl }}" wire:navigate class="block h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-zinc-200" style="background-color: {{ $itemColor }};">
+                                                <img src="{{ route('public.storage', ['path' => 'tshirt_images/' . $item['image_url']]) }}" alt="{{ $item['name'] }}" class="h-full w-full object-contain">
+                                            </a>
+                                        @else
+                                            <div class="h-14 w-14 overflow-hidden rounded-lg border border-zinc-200" style="background-color: {{ $itemColor }};">
+                                                <img src="{{ route('public.storage', ['path' => 'tshirt_images/' . $item['image_url']]) }}" alt="{{ $item['name'] }}" class="h-full w-full object-contain">
+                                            </div>
+                                        @endif
+
                                         <div>
-                                            <div class="font-medium text-zinc-900">{{ $item['name'] }}</div>
+                                            @if ($detailUrl)
+                                                <a href="{{ $detailUrl }}" wire:navigate class="font-medium text-zinc-900 hover:text-indigo-600">
+                                                    {{ $item['name'] }}
+                                                </a>
+                                            @else
+                                                <div class="font-medium text-zinc-900">{{ $item['name'] }}</div>
+                                            @endif
                                             <div class="text-xs text-zinc-500">{{ ucfirst($item['type']) }} design</div>
                                         </div>
                                     </div>
                                 </td>
+
                                 <td class="px-4 py-4">
                                     <form method="POST" action="{{ route('cart.update', $key) }}" class="flex flex-col gap-2 sm:flex-row sm:items-center">
                                         @csrf
                                         @method('PUT')
-                                        <select name="color_code" class="rounded border border-zinc-300 bg-white px-2 py-1 text-sm" onchange="this.form.submit()">
-                                            @foreach (\App\Models\Color::orderBy('name')->get() as $color)
+                                        <select name="color_code" class="min-w-[8rem] rounded border border-zinc-300 bg-white px-2 py-1 pr-6 text-sm" onchange="this.form.submit()">
+                                            @foreach ($colors as $color)
                                                 <option value="{{ $color->code }}" @selected($item['color_code'] === $color->code)>
                                                     {{ $color->name }}
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <select name="size" class="rounded border border-zinc-300 bg-white px-2 py-1 text-sm" onchange="this.form.submit()">
+                                        <select name="size" class="min-w-[6rem] rounded border border-zinc-300 bg-white px-2 py-1 text-sm" style="-webkit-appearance: none; -moz-appearance: none; appearance: none; background-image: none; padding-right: 0.5rem;" onchange="this.form.submit()">
                                             @foreach (['XS', 'S', 'M', 'L', 'XL'] as $size)
                                                 <option value="{{ $size }}" @selected($item['size'] === $size)>{{ $size }}</option>
                                             @endforeach
                                         </select>
                                     </form>
                                 </td>
-                                <td class="px-4 py-4 text-right text-sm text-zinc-700">&euro;{{ number_format($item['unit_price'], 2) }}</td>
+
+                                <td class="px-4 py-4 text-right text-sm">
+                                    @if ($item['qualifies_discount'])
+                                        <div class="text-zinc-400 line-through">&euro;{{ number_format($item['original_unit_price'], 2) }}</div>
+                                        <div class="font-semibold text-emerald-600">&euro;{{ number_format($item['unit_price'], 2) }}</div>
+                                        <div class="text-xs text-zinc-500">-{{ rtrim(rtrim(number_format($item['discount_rate'], 2), '0'), '.') }}%</div>
+                                    @else
+                                        <div class="text-zinc-700">&euro;{{ number_format($item['unit_price'], 2) }}</div>
+                                        @if ($item['discount_threshold'])
+                                            <div class="text-xs text-zinc-500">{{ $item['discount_threshold'] }}+ for discount</div>
+                                        @endif
+                                    @endif
+                                </td>
+
                                 <td class="px-4 py-4 text-right">
                                     <form method="POST" action="{{ route('cart.update', $key) }}" class="inline-flex items-center gap-2">
                                         @csrf
                                         @method('PUT')
-                                        <input type="number" name="qty" value="{{ $item['qty'] }}" min="0" class="w-20 rounded border border-zinc-300 px-2 py-1 text-right text-sm">
-                                        <button type="submit" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">Update</button>
+                                        <input
+                                            type="number"
+                                            name="qty"
+                                            value="{{ $item['qty'] }}"
+                                            min="0"
+                                            class="w-20 rounded border border-zinc-300 px-2 py-1 text-right text-sm"
+                                            onchange="this.form.submit()"
+                                        >
                                     </form>
                                 </td>
-                                <td class="px-4 py-4 text-right font-semibold text-zinc-900">&euro;{{ number_format($item['sub_total'], 2) }}</td>
+
+                                <td class="px-4 py-4 text-right">
+                                    @if ($item['qualifies_discount'])
+                                        <div class="text-sm text-zinc-400 line-through">&euro;{{ number_format($item['original_sub_total'], 2) }}</div>
+                                        <div class="font-semibold text-zinc-900">&euro;{{ number_format($item['sub_total'], 2) }}</div>
+                                        <div class="text-xs text-emerald-600">Save &euro;{{ number_format($item['discount_amount'], 2) }}</div>
+                                    @else
+                                        <div class="font-semibold text-zinc-900">&euro;{{ number_format($item['sub_total'], 2) }}</div>
+                                    @endif
+                                </td>
+
                                 <td class="px-4 py-4 text-right">
                                     <form method="POST" action="{{ route('cart.remove', $key) }}">
                                         @csrf
@@ -89,10 +136,25 @@
                 </div>
 
                 <div class="text-right">
+                    @if ($totalSavings > 0)
+                        <p class="text-sm text-zinc-400 line-through">Original total: &euro;{{ number_format($originalTotal, 2) }}</p>
+                        <p class="text-sm text-emerald-600">Discount saved: &euro;{{ number_format($totalSavings, 2) }}</p>
+                    @endif
                     <p class="text-xl font-bold text-zinc-900">Total: &euro;{{ number_format($total, 2) }}</p>
-                    <a href="{{ route('checkout.index') }}" class="mt-2 inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500">
-                        Proceed to Checkout
-                    </a>
+
+                    @if ($checkoutHref && $checkoutEnabled)
+                        <a href="{{ $checkoutHref }}" class="mt-2 inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500">
+                            {{ $checkoutLabel }}
+                        </a>
+                    @elseif ($checkoutHref)
+                        <a href="{{ $checkoutHref }}" class="mt-2 inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500">
+                            {{ $checkoutLabel }}
+                        </a>
+                    @else
+                        <span class="mt-2 inline-flex cursor-not-allowed items-center justify-center rounded-lg bg-zinc-300 px-4 py-2 text-sm font-medium text-zinc-600">
+                            {{ $checkoutLabel }}
+                        </span>
+                    @endif
                 </div>
             </div>
         @endif

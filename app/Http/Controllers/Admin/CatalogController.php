@@ -52,6 +52,8 @@ class CatalogController extends Controller
             'image' => $tshirtImage->load('category'),
             'colors' => $colors,
             'catalogPrice' => $catalogPrice,
+            'catalogDiscountPrice' => $priceConfig?->unit_price_catalog_discount ?? $catalogPrice,
+            'discountThreshold' => $priceConfig?->qty_discount ?? null,
             'sizes' => $sizes,
         ]);
     }

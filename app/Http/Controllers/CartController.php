@@ -14,12 +14,58 @@ class CartController extends Controller
     public function index()
     {
         $cart = session()->get('cart', []);
+        $priceConfig = Price::first();
+        $colors = \App\Models\Color::orderBy('name')->get();
+        $discountThreshold = $priceConfig?->qty_discount;
+        $originalTotal = 0;
         $total = 0;
-        foreach ($cart as $item) {
+
+        foreach ($cart as $key => $item) {
+            $baseUnitPrice = $this->getBaseUnitPrice($priceConfig, $item['type']);
+            $discountUnitPrice = $this->getDiscountUnitPrice($priceConfig, $item['type']);
+            $qualifiesDiscount = $discountThreshold && $item['qty'] >= $discountThreshold;
+            $originalSubTotal = $item['qty'] * $baseUnitPrice;
+            $discountAmount = max($originalSubTotal - $item['sub_total'], 0);
+            $discountRate = $baseUnitPrice > 0
+                ? round((($baseUnitPrice - $discountUnitPrice) / $baseUnitPrice) * 100, 2)
+                : 0;
+
+            $cart[$key]['original_unit_price'] = $baseUnitPrice;
+            $cart[$key]['discount_unit_price'] = $discountUnitPrice;
+            $cart[$key]['original_sub_total'] = $originalSubTotal;
+            $cart[$key]['discount_amount'] = $discountAmount;
+            $cart[$key]['discount_rate'] = $discountRate;
+            $cart[$key]['qualifies_discount'] = (bool) $qualifiesDiscount;
+            $cart[$key]['discount_threshold'] = $discountThreshold;
+
+            $originalTotal += $originalSubTotal;
             $total += $item['sub_total'];
         }
 
-        return view('cart.index', compact('cart', 'total'));
+        $totalSavings = max($originalTotal - $total, 0);
+        $user = auth()->user();
+        $checkoutEnabled = $user?->isCustomer() && ! $user->blocked;
+        $checkoutLabel = 'Proceed to Checkout';
+        $checkoutHref = route('checkout.index');
+
+        if (! $user) {
+            $checkoutLabel = 'Login to Checkout';
+            $checkoutHref = route('login');
+        } elseif (! $user->isCustomer()) {
+            $checkoutLabel = 'Customers Only';
+            $checkoutHref = null;
+        }
+
+        return view('cart.index', compact(
+            'cart',
+            'colors',
+            'total',
+            'originalTotal',
+            'totalSavings',
+            'checkoutEnabled',
+            'checkoutLabel',
+            'checkoutHref'
+        ));
     }
 
     public function show()
@@ -186,5 +232,27 @@ class CartController extends Controller
         } else {
             return ($quantity >= $threshold) ? $priceConfig->unit_price_own_discount : $priceConfig->unit_price_own;
         }
+    }
+
+    private function getBaseUnitPrice($priceConfig, $type)
+    {
+        if (! $priceConfig) {
+            return 0;
+        }
+
+        return $type === 'catalog'
+            ? $priceConfig->unit_price_catalog
+            : $priceConfig->unit_price_own;
+    }
+
+    private function getDiscountUnitPrice($priceConfig, $type)
+    {
+        if (! $priceConfig) {
+            return 0;
+        }
+
+        return $type === 'catalog'
+            ? $priceConfig->unit_price_catalog_discount
+            : $priceConfig->unit_price_own_discount;
     }
 }

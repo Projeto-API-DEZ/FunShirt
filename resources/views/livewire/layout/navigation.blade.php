@@ -15,10 +15,17 @@ new class extends Component
 
 <nav x-data="{ open: false }" class="border-b backdrop-blur" style="background: var(--app-nav); border-color: var(--app-border); color: var(--app-text);">
     @php($user = auth()->user())
+    @php($cart = session('cart', []))
+    @php($cartTotal = collect($cart)->sum('sub_total'))
+    @php($cartCount = collect($cart)->sum('qty'))
+    @php($navClass = fn (): string => 'rounded-full px-3 py-2 text-sm font-medium transition')
+    @php($navStyle = function (bool $active): string {
+        return $active
+            ? 'background: var(--app-surface-2); color: var(--app-text); border: 1px solid var(--app-border);'
+            : 'color: var(--app-text); border: 1px solid transparent;';
+    })
     @php(
         $otherLinks = collect([
-            ['label' => 'Catalog', 'href' => route('catalog.index')],
-            ['label' => 'Cart', 'href' => route('cart.show')],
             ['label' => 'Login', 'href' => route('login'), 'guest' => true],
             ['label' => 'Register', 'href' => route('register'), 'guest' => true],
             ['label' => 'Dashboard', 'href' => route('dashboard'), 'auth' => true],
@@ -47,9 +54,10 @@ new class extends Component
             return true;
         })->values()
     )
+
     <div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center gap-3">
-            <a href="/" class="flex items-center gap-3" wire:navigate>
+        <div class="flex items-center gap-4">
+            <a href="{{ route('catalog.index') }}" class="flex items-center gap-3" wire:navigate>
                 <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-600 text-sm font-semibold text-white">FS</div>
                 <div class="hidden sm:block">
                     <p class="text-sm font-semibold">FunShirt</p>
@@ -58,18 +66,13 @@ new class extends Component
             </a>
 
             <div class="hidden items-center gap-2 md:flex">
-                <a href="/" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Home</a>
-                <a href="{{ route('catalog.index') }}" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Catalog</a>
-                <a href="{{ route('cart.show') }}" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Cart</a>
-                @auth
-                    <a href="{{ route('orders.index') }}" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Orders</a>
-                @endauth
+                <a href="{{ route('catalog.index') }}" class="{{ $navClass() }}" style="{{ $navStyle(request()->routeIs('catalog.index')) }}" wire:navigate>Catalog</a>
 
-                <x-dropdown align="left" width="w-72" contentClasses="py-1" >
+                <x-dropdown align="left" width="w-72" contentClasses="py-1">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5">
+                        <button class="{{ $navClass() }}" style="{{ $navStyle(request()->routeIs('dashboard') || request()->routeIs('admin.*') || request()->routeIs('login') || request()->routeIs('register') || request()->routeIs('checkout.*')) }}">
                             <span>Other</span>
-                            <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <svg class="ml-2 inline h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                             </svg>
                         </button>
@@ -86,7 +89,19 @@ new class extends Component
             </div>
         </div>
 
-        <div class="hidden items-center gap-4 sm:flex">
+        <div class="hidden items-center gap-3 sm:flex">
+            <a href="{{ route('cart.show') }}" class="{{ $navClass() }} inline-flex items-center gap-2" style="{{ $navStyle(request()->routeIs('cart.*')) }}" wire:navigate>
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="20" r="1"></circle>
+                    <circle cx="18" cy="20" r="1"></circle>
+                    <path d="M3 4h2l2.4 10.2a1 1 0 0 0 1 .8h9.8a1 1 0 0 0 1-.8L21 7H7"></path>
+                </svg>
+                <span>Cart</span>
+                <span class="rounded-full bg-white/70 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+                    {{ $cartCount }} · &euro;{{ number_format($cartTotal, 2) }}
+                </span>
+            </a>
+
             <button
                 type="button"
                 id="theme-toggle-app"
@@ -97,77 +112,77 @@ new class extends Component
                 <span data-theme-label>Light</span>
             </button>
 
-                @auth
-                    <x-dropdown align="right" width="48">
+            @auth
+                <x-dropdown align="right" width="56">
                     <x-slot name="trigger">
-                    <button class="inline-flex items-center gap-3 rounded-full border px-3 py-2 text-sm font-medium transition" style="background: var(--app-surface); border-color: var(--app-border); color: var(--app-text);">
-                        @if($user->hasUploadedPhoto())
-                            <span
-                                class="inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-600 text-xs font-semibold leading-none text-white"
-                                style="width: 2rem; height: 2rem; min-width: 2rem; min-height: 2rem;"
-                            >
-                                <img
-                                    src="{{ $user->photoFullUrl }}"
-                                    alt=""
-                                    class="block"
-                                    style="width: 100%; height: 100%; object-fit: cover; object-position: center;"
-                                    onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"
-                                >
-                                <span class="hidden leading-none">{{ $user->initials() }}</span>
-                            </span>
-                        @else
-                            <span
-                                class="inline-flex shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-semibold leading-none text-white"
-                                style="width: 2rem; height: 2rem; min-width: 2rem; min-height: 2rem;"
-                            >
-                                {{ $user->initials() }}
-                            </span>
-                        @endif
-                        <div class="max-w-[11rem] truncate text-left" x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
+                        <button class="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition" style="background: var(--app-surface); border-color: var(--app-border); color: var(--app-text);">
+                            @if($user->hasUploadedPhoto())
+                                <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-600 text-xs font-semibold leading-none text-white">
+                                    <img
+                                        src="{{ $user->photoFullUrl }}"
+                                        alt=""
+                                        class="block h-full w-full object-cover object-center"
+                                        onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"
+                                    >
+                                    <span class="hidden leading-none">{{ $user->initials() }}</span>
+                                </span>
+                            @else
+                                <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-semibold leading-none text-white">
+                                    {{ $user->initials() }}
+                                </span>
+                            @endif
 
-                        <div class="shrink-0">
-                            <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <div class="max-w-[10rem] truncate text-left" x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
+                            <svg class="h-4 w-4 shrink-0 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                             </svg>
-                        </div>
-                    </button>
-                </x-slot>
+                        </button>
+                    </x-slot>
 
-                <x-slot name="content">
-                    <x-dropdown-link :href="route('profile.edit')" wire:navigate>
-                        {{ __('Profile') }}
-                    </x-dropdown-link>
-
-                    @if ($user->isAdmin())
-                        <x-dropdown-link :href="route('admin.users.index')" wire:navigate>
-                            {{ __('User Management') }}
+                    <x-slot name="content">
+                        <x-dropdown-link :href="route('profile.edit')" wire:navigate>
+                            Profile
                         </x-dropdown-link>
-                    @elseif ($user->isStaff())
-                        <span class="block px-4 py-2 text-sm" style="color: var(--app-muted);">
-                            {{ __('Products') }}
-                        </span>
-                    @else
-                        <span class="block px-4 py-2 text-sm" style="color: var(--app-muted);">
-                            {{ __('Orders') }}
-                        </span>
-                    @endif
 
-                    <button wire:click="logout" class="w-full text-start">
-                        <x-dropdown-link>
-                            {{ __('Log Out') }}
+                        <x-dropdown-link :href="route('orders.index')" wire:navigate>
+                            Orders
                         </x-dropdown-link>
-                    </button>
-                </x-slot>
-                    </x-dropdown>
-                @else
-                    <div class="flex items-center gap-2">
-                        <a href="{{ route('login') }}" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Login</a>
-                        <a href="{{ route('register') }}" class="rounded-full px-3 py-2 text-sm font-medium transition hover:bg-black/5" wire:navigate>Register</a>
-                    </div>
-                @endauth
+
+                        @if ($user->isAdmin())
+                            <x-dropdown-link :href="route('admin.users.index')" wire:navigate>
+                                User Management
+                            </x-dropdown-link>
+                        @elseif ($user->isStaff())
+                            <span class="block px-4 py-2 text-sm" style="color: var(--app-muted);">
+                                Products
+                            </span>
+                        @endif
+
+                        <button wire:click="logout" class="w-full text-start">
+                            <x-dropdown-link>
+                                Log Out
+                            </x-dropdown-link>
+                        </button>
+                    </x-slot>
+                </x-dropdown>
+            @else
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('login') }}" class="{{ $navClass() }}" style="{{ $navStyle(request()->routeIs('login')) }}" wire:navigate>Login</a>
+                    <a href="{{ route('register') }}" class="{{ $navClass() }}" style="{{ $navStyle(request()->routeIs('register')) }}" wire:navigate>Register</a>
+                </div>
+            @endauth
         </div>
 
         <div class="flex items-center gap-2 sm:hidden">
+            <a href="{{ route('cart.show') }}" class="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition" style="background: var(--app-surface); border-color: var(--app-border); color: var(--app-text);" wire:navigate>
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="20" r="1"></circle>
+                    <circle cx="18" cy="20" r="1"></circle>
+                    <path d="M3 4h2l2.4 10.2a1 1 0 0 0 1 .8h9.8a1 1 0 0 0 1-.8L21 7H7"></path>
+                </svg>
+                <span>{{ $cartCount }}</span>
+            </a>
+
             <button
                 type="button"
                 id="theme-toggle-app-mobile"
@@ -187,30 +202,24 @@ new class extends Component
         </div>
     </div>
 
-        <div :class="{'block': open, 'hidden': ! open}" class="hidden border-t sm:hidden" style="border-color: var(--app-border);">
-            <div class="space-y-1 px-4 py-3">
-                <x-responsive-nav-link href="/" wire:navigate>
-                    Home
+    <div :class="{'block': open, 'hidden': ! open}" class="hidden border-t sm:hidden" style="border-color: var(--app-border);">
+        <div class="space-y-1 px-4 py-3">
+            <x-responsive-nav-link :href="route('catalog.index')" :active="request()->routeIs('catalog.index')" wire:navigate>
+                Catalog
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('cart.show')" :active="request()->routeIs('cart.*')" wire:navigate>
+                Cart
+            </x-responsive-nav-link>
+
+            @guest
+                <x-responsive-nav-link :href="route('login')" :active="request()->routeIs('login')" wire:navigate>
+                    Login
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('catalog.index')" wire:navigate>
-                    Catalog
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('cart.show')" wire:navigate>
-                    Cart
-                </x-responsive-nav-link>
-                @auth
-                    <x-responsive-nav-link :href="route('orders.index')" wire:navigate>
-                        Orders
-                    </x-responsive-nav-link>
-                @endauth
-                @guest
-                    <x-responsive-nav-link :href="route('login')" wire:navigate>
-                        {{ __('Login') }}
-                    </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('register')" wire:navigate>
-                    {{ __('Register') }}
+                <x-responsive-nav-link :href="route('register')" :active="request()->routeIs('register')" wire:navigate>
+                    Register
                 </x-responsive-nav-link>
             @endguest
+
             <div class="rounded-xl px-3 py-2 text-sm font-semibold" style="background: var(--app-surface-2); color: var(--app-text);">Other</div>
             <div class="space-y-1">
                 @foreach ($otherLinks as $link)
@@ -222,52 +231,47 @@ new class extends Component
         </div>
 
         @auth
-        <div class="border-t px-4 py-4" style="border-color: var(--app-border);">
-            <div class="flex items-center gap-3">
-                @if($user->hasUploadedPhoto())
-                    <span
-                        class="inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-600 text-sm font-semibold leading-none text-white"
-                        style="width: 2.5rem; height: 2.5rem; min-width: 2.5rem; min-height: 2.5rem;"
-                    >
-                        <img
-                            src="{{ $user->photoFullUrl }}"
-                            alt=""
-                            class="block"
-                            style="width: 100%; height: 100%; object-fit: cover; object-position: center;"
-                            onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"
-                        >
-                        <span class="hidden leading-none">{{ $user->initials() }}</span>
-                    </span>
-                @else
-                    <span
-                        class="inline-flex shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-semibold leading-none text-white"
-                        style="width: 2.5rem; height: 2.5rem; min-width: 2.5rem; min-height: 2.5rem;"
-                    >
-                        {{ $user->initials() }}
-                    </span>
-                @endif
-                <div>
-                    <div class="text-base font-medium" x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
-                    <div class="text-sm" style="color: var(--app-muted);">{{ auth()->user()->email }}</div>
+            <div class="border-t px-4 py-4" style="border-color: var(--app-border);">
+                <div class="flex items-center gap-3">
+                    @if($user->hasUploadedPhoto())
+                        <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-600 text-sm font-semibold leading-none text-white">
+                            <img
+                                src="{{ $user->photoFullUrl }}"
+                                alt=""
+                                class="block h-full w-full object-cover object-center"
+                                onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"
+                            >
+                            <span class="hidden leading-none">{{ $user->initials() }}</span>
+                        </span>
+                    @else
+                        <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-semibold leading-none text-white">
+                            {{ $user->initials() }}
+                        </span>
+                    @endif
+
+                    <div>
+                        <div class="text-base font-medium" x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
+                        <div class="text-sm" style="color: var(--app-muted);">{{ auth()->user()->email }}</div>
+                    </div>
+                </div>
+
+                <div class="mt-3 space-y-1">
+                    <a href="{{ route('profile.edit') }}" class="block rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-text);" wire:navigate>Profile</a>
+                    <a href="{{ route('orders.index') }}" class="block rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-text);" wire:navigate>Orders</a>
+
+                    @if ($user->isAdmin())
+                        <a href="{{ route('admin.users.index') }}" class="block rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);" wire:navigate>User Management</a>
+                    @elseif ($user->isStaff())
+                        <div class="rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);">Products</div>
+                    @endif
+
+                    <button wire:click="logout" class="w-full text-start">
+                        <x-responsive-nav-link>
+                            Log Out
+                        </x-responsive-nav-link>
+                    </button>
                 </div>
             </div>
-
-            <div class="mt-3 space-y-1">
-                <a href="{{ route('profile.edit') }}" class="block rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-text);" wire:navigate>Profile</a>
-                @if ($user->isAdmin())
-                    <a href="{{ route('admin.users.index') }}" class="block rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);" wire:navigate>User Management</a>
-                @elseif ($user->isStaff())
-                    <div class="rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);">Products</div>
-                @else
-                    <div class="rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);">Orders</div>
-                @endif
-                <button wire:click="logout" class="w-full text-start">
-                    <x-responsive-nav-link>
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
-                </button>
-            </div>
-        </div>
         @endauth
     </div>
 </nav>

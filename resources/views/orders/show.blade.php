@@ -1,19 +1,29 @@
-<x-layouts::main-content title="Order #{{ $order->id }}" heading="Order Details" subheading="Review the selected items and current status">
+﻿<x-layouts::main-content title="Order #{{ $order->id }}" heading="Order Details" subheading="Review the selected items and current status">
     <div class="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
             <section class="rounded-xl border border-zinc-200 bg-white shadow-sm">
                 <div class="border-b border-zinc-200 px-6 py-4">
-                    <h2 class="text-lg font-semibold text-zinc-900">Ordered items</h2>
+                    <h2 class="text-lg font-semibold text-zinc-900">Ordered Items</h2>
                 </div>
 
                 <div class="divide-y divide-zinc-100">
                     @foreach ($order->items as $item)
+                        @php($itemColor = '#' . ltrim((string) ($item->color_code ?? 'e4e4e7'), '#'))
                         <div class="flex items-start justify-between gap-4 px-6 py-4">
                             <div class="flex items-start gap-4">
-                                <div class="h-12 w-12 rounded-lg border border-zinc-200" style="background-color: #{{ $item->color_code }}"></div>
+                                <div class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-zinc-200" style="background-color: {{ $itemColor }};">
+                                    @if ($item->tshirtImage?->image_url)
+                                        <img
+                                            src="{{ route('public.storage', ['path' => 'tshirt_images/' . $item->tshirtImage->image_url]) }}"
+                                            alt="{{ $item->tshirtImage?->name ?? 'Deleted image' }}"
+                                            class="h-full w-full object-contain"
+                                        >
+                                    @endif
+                                </div>
+
                                 <div>
                                     <p class="font-medium text-zinc-900">{{ $item->tshirtImage?->name ?? 'Deleted image' }}</p>
-                                    <p class="mt-1 text-sm text-zinc-500">Size: {{ $item->size }} · Qty: {{ $item->qty }}</p>
+                                    <p class="mt-1 text-sm text-zinc-500">Color: {{ strtoupper((string) $item->color_code) }} | Size: {{ $item->size }} | Qty: {{ $item->qty }}</p>
                                 </div>
                             </div>
 
@@ -36,7 +46,14 @@
                         </div>
                         <div class="flex items-center justify-between gap-4">
                             <dt class="text-zinc-500">Status</dt>
-                            <dd class="font-medium text-zinc-900">{{ ucfirst($order->status) }}</dd>
+                            <dd>
+                                <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium
+                                    {{ $order->status === 'closed' ? 'bg-emerald-100 text-emerald-700' : '' }}
+                                    {{ $order->status === 'pending' ? 'bg-amber-100 text-amber-700' : '' }}
+                                    {{ $order->status === 'canceled' ? 'bg-rose-100 text-rose-700' : '' }}">
+                                    {{ ucfirst($order->status) }}
+                                </span>
+                            </dd>
                         </div>
                         <div class="flex items-center justify-between gap-4">
                             <dt class="text-zinc-500">Total</dt>
@@ -54,7 +71,7 @@
                 </div>
 
                 <div class="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-                    <h2 class="text-lg font-semibold text-zinc-900">Delivery</h2>
+                    <h2 class="text-lg font-semibold text-zinc-900">Order Delivery Address</h2>
                     <p class="mt-3 text-sm leading-6 text-zinc-600">{{ $order->address }}</p>
 
                     @if ($order->notes)
@@ -64,10 +81,12 @@
                         </div>
                     @endif
 
-                    @if ($order->status === 'closed' && $order->receipt_url)
+                    @if ($order->receipt_url)
                         <a href="{{ route('orders.receipt', $order) }}" class="mt-4 inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500">
-                            Download receipt
+                            Download PDF Receipt
                         </a>
+                    @else
+                        <p class="mt-4 text-sm text-zinc-500">PDF receipt will be available after the order is closed.</p>
                     @endif
 
                     @can('cancel', $order)

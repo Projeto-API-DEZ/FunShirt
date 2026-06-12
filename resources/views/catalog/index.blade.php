@@ -36,33 +36,12 @@
                 </div>
             </form>
 
-            @if ($categories->isNotEmpty())
-                <div class="mt-4 flex flex-wrap gap-2">
-                    <a
-                        href="{{ route('catalog.index', request()->except(['category', 'page'])) }}"
-                        class="inline-flex items-center rounded-full border px-3 py-1.5 text-sm font-medium transition hover:bg-zinc-100"
-                        style="{{ request()->filled('category') ? 'border-color: var(--app-border); background: var(--app-surface); color: var(--app-text);' : 'border-color:#4f46e5;background:#4f46e5;color:#fff;' }}"
-                    >
-                        All
-                    </a>
-
-                    @foreach ($categories as $category)
-                        <a
-                            href="{{ route('catalog.index', array_merge(request()->except('page'), ['category' => $category->id])) }}"
-                            class="inline-flex items-center rounded-full border px-3 py-1.5 text-sm font-medium transition hover:bg-zinc-100"
-                            style="{{ (string) request('category') === (string) $category->id ? 'border-color:#4f46e5;background:#4f46e5;color:#fff;' : 'border-color: var(--app-border); background: var(--app-surface); color: var(--app-text);' }}"
-                        >
-                            {{ $category->name }}
-                        </a>
-                    @endforeach
-                </div>
-            @endif
         </section>
 
         <section class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
             @forelse ($images as $image)
                 <article class="group flex h-full flex-col overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                    <div class="relative flex aspect-square items-center justify-center bg-zinc-100 p-4">
+                    <div class="relative flex aspect-square items-center justify-center border-b border-zinc-200 p-4" style="background-color: var(--app-image-bg);">
                         @if ($image->image_url)
                             <img
                                 src="{{ route('public.storage', ['path' => 'tshirt_images/' . $image->image_url]) }}"
@@ -75,14 +54,11 @@
                             </div>
                         @endif
 
-                        <span class="absolute right-3 top-3 rounded-full bg-indigo-600 px-2 py-1 text-xs font-semibold text-white">
-                            Catalog
-                        </span>
                     </div>
 
                     <div class="flex flex-1 flex-col justify-between p-4">
                         <div>
-                            <h3 class="truncate text-lg font-semibold text-zinc-950">{{ $image->name }}</h3>
+                            <h3 class="truncate text-lg font-semibold text-zinc-900">{{ $image->name }}</h3>
                             <p class="mt-1 text-xs text-zinc-500">
                                 {{ $image->category?->name ?? 'Uncategorized' }}
                             </p>
