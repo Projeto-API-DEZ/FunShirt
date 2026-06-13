@@ -32,13 +32,16 @@ class OrderStatusUpdate extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'mails.orders.order_status_update',
+            view: 'mails.status_updated',
         );
     }
 
     public function attachments(): array
     {
-        if ($this->order->receipt_url && Storage::disk('private')->exists('pdf_receipts/' . $this->order->receipt_url)) {
+        // Only attach the receipt if the order is closed and the file exists
+        if ($this->order->status === 'closed' && 
+            $this->order->receipt_url && 
+            Storage::disk('private')->exists('pdf_receipts/' . $this->order->receipt_url)) {
             return [
                 Attachment::fromStorageDisk('private', 'pdf_receipts/' . $this->order->receipt_url)
                     ->as('receipt.pdf')
