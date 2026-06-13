@@ -1,9 +1,19 @@
+@php($viewer = auth()->user())
+
 <x-layouts::main-content title="My Orders" heading="Order History" subheading="Track the status of your submitted orders">
     <div class="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
             <div class="border-b border-zinc-200 px-6 py-4">
                 <h2 class="text-lg font-semibold text-zinc-900">Orders</h2>
-                <p class="mt-1 text-sm text-zinc-500">Customers see only their own orders. Staff and admin can review all orders.</p>
+                <p class="mt-1 text-sm text-zinc-500">
+                    @if ($viewer?->isStaff())
+                        Staff can review pending orders only and close them after processing.
+                    @elseif ($viewer?->isAdmin())
+                        Administrators can review every order in the platform.
+                    @else
+                        Customers see only their own orders.
+                    @endif
+                </p>
             </div>
 
             <div class="overflow-x-auto">
@@ -37,6 +47,17 @@
                                     <a href="{{ route('orders.show', $order) }}" class="inline-flex items-center justify-center rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50">
                                         View
                                     </a>
+
+                                    @if ($viewer?->isStaff() && $order->status === 'pending')
+                                        <form method="POST" action="{{ route('orders.updateStatus', $order) }}" class="ml-2 inline-flex">
+                                            @csrf
+                                            @method('PATCH')
+                                            <input type="hidden" name="status" value="closed">
+                                            <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-emerald-500">
+                                                Close
+                                            </button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @empty

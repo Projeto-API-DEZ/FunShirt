@@ -10,13 +10,17 @@ class ReceiptController extends Controller
     public function download(Order $order)
     {
         $user = auth()->user();
-        if (!$user) abort(403);
+        
+        // Allow if user is admin OR the order belongs to the logged-in customer
         $isAdmin = $user->user_type === 'A';
         $isOwner = $order->customer_id === ($user->customer->id ?? null);
-        if (!$isAdmin && !$isOwner) abort(403);
+        
+        if (!$isAdmin && !$isOwner) {
+            abort(403, 'Unauthorized');
+        }
 
         if (!$order->receipt_url || !Storage::disk('private')->exists('pdf_receipts/' . $order->receipt_url)) {
-            abort(404);
+            abort(404, 'Receipt not found');
         }
 
         return Storage::disk('private')->download('pdf_receipts/' . $order->receipt_url, 'receipt.pdf');

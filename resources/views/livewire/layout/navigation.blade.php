@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use App\Livewire\Actions\Logout;
 use Livewire\Volt\Component;
@@ -18,6 +18,7 @@ new class extends Component
     @php($cart = session('cart', []))
     @php($cartTotal = collect($cart)->sum('sub_total'))
     @php($cartCount = collect($cart)->sum('qty'))
+    @php($showCart = ! $user || $user->isCustomer())
     @php($navClass = fn (): string => 'rounded-full px-3 py-2 text-sm font-medium transition')
     @php($navStyle = function (bool $active): string {
         return $active
@@ -29,9 +30,10 @@ new class extends Component
             ['label' => 'Login', 'href' => route('login'), 'guest' => true],
             ['label' => 'Register', 'href' => route('register'), 'guest' => true],
             ['label' => 'Dashboard', 'href' => route('dashboard'), 'auth' => true],
-            ['label' => 'Profile', 'href' => route('profile.edit'), 'auth' => true],
+            ['label' => 'Profile', 'href' => route('profile.edit'), 'auth' => true, 'except_staff' => true],
+            ['label' => 'Change Password', 'href' => route('profile.password'), 'staff' => true],
             ['label' => 'Orders', 'href' => route('orders.index'), 'auth' => true],
-            ['label' => 'Checkout', 'href' => route('checkout.index'), 'auth' => true],
+            ['label' => 'Checkout', 'href' => route('checkout.index'), 'customer' => true],
             ['label' => 'Admin Users', 'href' => route('admin.users.index'), 'admin' => true],
             ['label' => 'Admin Categories', 'href' => route('admin.categories.index'), 'admin' => true],
             ['label' => 'Admin Colors', 'href' => route('admin.colors.index'), 'admin' => true],
@@ -47,7 +49,19 @@ new class extends Component
                 return false;
             }
 
-            if (($link['admin'] ?? false) && ! ($user?->isAdmin())) {
+            if (($link['customer'] ?? false) && ! $user?->isCustomer()) {
+                return false;
+            }
+
+            if (($link['staff'] ?? false) && ! $user?->isStaff()) {
+                return false;
+            }
+
+            if (($link['except_staff'] ?? false) && $user?->isStaff()) {
+                return false;
+            }
+
+            if (($link['admin'] ?? false) && ! $user?->isAdmin()) {
                 return false;
             }
 
@@ -67,10 +81,13 @@ new class extends Component
 
             <div class="hidden items-center gap-2 md:flex">
                 <a href="{{ route('catalog.index') }}" class="{{ $navClass() }}" style="{{ $navStyle(request()->routeIs('catalog.index')) }}" wire:navigate>Catalog</a>
+                @if ($user && ! $user->isStaff())
+                    <a href="{{ route('customize.create') }}" class="{{ $navClass() }}" style="{{ $navStyle(request()->routeIs('customize.*')) }}" wire:navigate>Customize</a>
+                @endif
 
                 <x-dropdown align="left" width="w-72" contentClasses="py-1">
                     <x-slot name="trigger">
-                        <button class="{{ $navClass() }}" style="{{ $navStyle(request()->routeIs('dashboard') || request()->routeIs('admin.*') || request()->routeIs('login') || request()->routeIs('register') || request()->routeIs('checkout.*')) }}">
+                        <button class="{{ $navClass() }}" style="{{ $navStyle(request()->routeIs('dashboard') || request()->routeIs('admin.*') || request()->routeIs('login') || request()->routeIs('register') || request()->routeIs('checkout.*') || request()->routeIs('profile.*') || request()->routeIs('orders.*')) }}">
                             <span>Other</span>
                             <svg class="ml-2 inline h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -90,17 +107,19 @@ new class extends Component
         </div>
 
         <div class="hidden items-center gap-3 sm:flex">
-            <a href="{{ route('cart.show') }}" class="{{ $navClass() }} inline-flex items-center gap-2" style="{{ $navStyle(request()->routeIs('cart.*')) }}" wire:navigate>
-                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="9" cy="20" r="1"></circle>
-                    <circle cx="18" cy="20" r="1"></circle>
-                    <path d="M3 4h2l2.4 10.2a1 1 0 0 0 1 .8h9.8a1 1 0 0 0 1-.8L21 7H7"></path>
-                </svg>
-                <span>Cart</span>
-                <span class="rounded-full bg-white/70 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
-                    {{ $cartCount }} · &euro;{{ number_format($cartTotal, 2) }}
-                </span>
-            </a>
+            @if ($showCart)
+                <a href="{{ route('cart.show') }}" class="{{ $navClass() }} inline-flex items-center gap-2" style="{{ $navStyle(request()->routeIs('cart.*')) }}" wire:navigate>
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="20" r="1"></circle>
+                        <circle cx="18" cy="20" r="1"></circle>
+                        <path d="M3 4h2l2.4 10.2a1 1 0 0 0 1 .8h9.8a1 1 0 0 0 1-.8L21 7H7"></path>
+                    </svg>
+                    <span>Cart</span>
+                    <span class="rounded-full bg-white/70 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+                        {{ $cartCount }} · &euro;{{ number_format($cartTotal, 2) }}
+                    </span>
+                </a>
+            @endif
 
             <button
                 type="button"
@@ -140,22 +159,24 @@ new class extends Component
                     </x-slot>
 
                     <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')" wire:navigate>
-                            Profile
-                        </x-dropdown-link>
-
                         <x-dropdown-link :href="route('orders.index')" wire:navigate>
                             Orders
                         </x-dropdown-link>
+
+                        @if ($user->isStaff())
+                            <x-dropdown-link :href="route('profile.password')" wire:navigate>
+                                Change Password
+                            </x-dropdown-link>
+                        @else
+                            <x-dropdown-link :href="route('profile.edit')" wire:navigate>
+                                Profile
+                            </x-dropdown-link>
+                        @endif
 
                         @if ($user->isAdmin())
                             <x-dropdown-link :href="route('admin.users.index')" wire:navigate>
                                 User Management
                             </x-dropdown-link>
-                        @elseif ($user->isStaff())
-                            <span class="block px-4 py-2 text-sm" style="color: var(--app-muted);">
-                                Products
-                            </span>
                         @endif
 
                         <button wire:click="logout" class="w-full text-start">
@@ -174,14 +195,16 @@ new class extends Component
         </div>
 
         <div class="flex items-center gap-2 sm:hidden">
-            <a href="{{ route('cart.show') }}" class="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition" style="background: var(--app-surface); border-color: var(--app-border); color: var(--app-text);" wire:navigate>
-                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="9" cy="20" r="1"></circle>
-                    <circle cx="18" cy="20" r="1"></circle>
-                    <path d="M3 4h2l2.4 10.2a1 1 0 0 0 1 .8h9.8a1 1 0 0 0 1-.8L21 7H7"></path>
-                </svg>
-                <span>{{ $cartCount }}</span>
-            </a>
+            @if ($showCart)
+                <a href="{{ route('cart.show') }}" class="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition" style="background: var(--app-surface); border-color: var(--app-border); color: var(--app-text);" wire:navigate>
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="20" r="1"></circle>
+                        <circle cx="18" cy="20" r="1"></circle>
+                        <path d="M3 4h2l2.4 10.2a1 1 0 0 0 1 .8h9.8a1 1 0 0 0 1-.8L21 7H7"></path>
+                    </svg>
+                    <span>{{ $cartCount }}</span>
+                </a>
+            @endif
 
             <button
                 type="button"
@@ -207,9 +230,17 @@ new class extends Component
             <x-responsive-nav-link :href="route('catalog.index')" :active="request()->routeIs('catalog.index')" wire:navigate>
                 Catalog
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('cart.show')" :active="request()->routeIs('cart.*')" wire:navigate>
-                Cart
-            </x-responsive-nav-link>
+            @if ($user && ! $user->isStaff())
+                <x-responsive-nav-link :href="route('customize.create')" :active="request()->routeIs('customize.*')" wire:navigate>
+                    Customize
+                </x-responsive-nav-link>
+            @endif
+
+            @if ($showCart)
+                <x-responsive-nav-link :href="route('cart.show')" :active="request()->routeIs('cart.*')" wire:navigate>
+                    Cart
+                </x-responsive-nav-link>
+            @endif
 
             @guest
                 <x-responsive-nav-link :href="route('login')" :active="request()->routeIs('login')" wire:navigate>
@@ -256,13 +287,16 @@ new class extends Component
                 </div>
 
                 <div class="mt-3 space-y-1">
-                    <a href="{{ route('profile.edit') }}" class="block rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-text);" wire:navigate>Profile</a>
                     <a href="{{ route('orders.index') }}" class="block rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-text);" wire:navigate>Orders</a>
+
+                    @if ($user->isStaff())
+                        <a href="{{ route('profile.password') }}" class="block rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-text);" wire:navigate>Change Password</a>
+                    @else
+                        <a href="{{ route('profile.edit') }}" class="block rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-text);" wire:navigate>Profile</a>
+                    @endif
 
                     @if ($user->isAdmin())
                         <a href="{{ route('admin.users.index') }}" class="block rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);" wire:navigate>User Management</a>
-                    @elseif ($user->isStaff())
-                        <div class="rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);">Products</div>
                     @endif
 
                     <button wire:click="logout" class="w-full text-start">

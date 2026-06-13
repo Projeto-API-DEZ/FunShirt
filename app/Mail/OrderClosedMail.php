@@ -37,9 +37,9 @@ class OrderClosedMail extends Mailable
 
     public function attachments(): array
     {
-        if ($this->order->receipt_url && \Storage::disk('private')->exists('pdf_receipts/' . $this->order->receipt_url)) {
+        if ($this->order->receipt_url && \Storage::disk('local')->exists('pdf_receipts/' . $this->order->receipt_url)) {
             return [
-                Attachment::fromStorageDisk('private', 'pdf_receipts/' . $this->order->receipt_url)
+                Attachment::fromStorageDisk('local', 'pdf_receipts/' . $this->order->receipt_url)
                     ->as('receipt.pdf')
                     ->withMime('application/pdf'),
             ];

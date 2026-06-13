@@ -1,4 +1,5 @@
 @php($initialColorCode = '#' . ltrim((string) ($colors->first()?->code ?? 'e4e4e7'), '#'))
+@php($viewer = auth()->user())
 
 <x-layouts::main-content title="Configure T-Shirt" heading="Customize Design" subheading="Select your color, size and quantity">
     <div class="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
@@ -97,9 +98,15 @@
                     </div>
 
                     <div class="flex gap-3">
-                        <button type="submit" class="inline-flex flex-1 items-center justify-center rounded-lg bg-indigo-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-500">
-                            Add to Cart
-                        </button>
+                        @if ($viewer?->isStaff())
+                            <span class="inline-flex flex-1 cursor-not-allowed items-center justify-center rounded-lg bg-zinc-300 px-4 py-3 text-sm font-medium text-zinc-600">
+                                Add to Cart Unavailable
+                            </span>
+                        @else
+                            <button type="submit" class="inline-flex flex-1 items-center justify-center rounded-lg bg-indigo-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-500">
+                                Add to Cart
+                            </button>
+                        @endif
                         <a href="{{ route('catalog.index') }}" class="inline-flex items-center justify-center rounded-lg border border-zinc-300 bg-white px-4 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100">
                             Back to Catalog
                         </a>

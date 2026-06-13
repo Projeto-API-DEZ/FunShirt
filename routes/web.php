@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\TshirtImageController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\CustomTshirtController;
 use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ReceiptController;
@@ -25,6 +26,8 @@ use Illuminate\Support\Facades\Route;
 // Public Catalog
 Route::get('/', [CatalogController::class, 'index'])->name('catalog.index');
 Route::get('/catalog/{tshirtImage}', [CatalogController::class, 'show'])->name('catalog.show');
+Route::get('/customize', [CustomTshirtController::class, 'create'])->name('customize.create');
+Route::post('/customize', [CustomTshirtController::class, 'store'])->name('customize.store');
 
 // Public Session-Based Shopping Cart (accessible by guests)
 Route::prefix('cart')->name('cart.')->group(function () {
@@ -53,7 +56,11 @@ Route::get('public-storage/{path}', function (string $path) {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
-    // Route::view('profile', 'profile')->name('profile');
+    Route::get('/email/verify-pending', [App\Http\Controllers\AuthController::class, 'showVerificationNotice'])->name('email.verify.notice');
+    Route::post('/email/verify-notification', [App\Http\Controllers\AuthController::class, 'resendVerificationNotice'])->name('email.verify.send');
+
+    Route::view('/password', 'profile-password')->name('profile.password');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
@@ -75,6 +82,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('orders')->name('orders.')->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('index');
         Route::get('/{order}', [OrderController::class, 'show'])->name('show')->middleware('can:view,order');
+        Route::get('/{order}/items/{item}/image', [OrderController::class, 'previewItemImage'])->name('items.image')->middleware('can:view,order');
+        Route::get('/{order}/items/{item}/download', [OrderController::class, 'downloadItemImage'])->name('items.download')->middleware('can:view,order');
         Route::patch('/{order}/status', [OrderController::class, 'updateStatus'])->name('updateStatus');
         Route::post('/{order}/cancel', [OrderController::class, 'cancel'])->name('cancel')->middleware('can:cancel,order');
     });

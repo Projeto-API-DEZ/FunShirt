@@ -35,7 +35,7 @@ class OrderPolicy
         if ($order->status !== 'pending') {
             return false;
         }
-        if ($user->isAdmin() || $user->isStaff()) {
+        if ($user->isAdmin()) {
             return true;
         }
         return $user->isCustomer() && $user->id === $order->customer_id;

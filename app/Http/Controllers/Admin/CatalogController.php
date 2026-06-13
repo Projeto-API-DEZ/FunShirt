@@ -15,7 +15,11 @@ class CatalogController extends Controller
         $categories = Category::orderBy('name')->get();
         $colors = Color::orderBy('name')->get();
 
-        $query = TshirtImage::whereNull('customer_id')->with('category');
+        $query = TshirtImage::whereNull('customer_id')
+            ->where(function ($builder) {
+                $builder->whereNull('custom')->orWhere('custom', false)->orWhere('custom', 0);
+            })
+            ->with('category');
 
         if ($request->filled('category')) {
             $query->where('category_id', $request->category);
@@ -39,7 +43,7 @@ class CatalogController extends Controller
 
     public function show(TshirtImage $tshirtImage)
     {
-        if ($tshirtImage->customer_id !== null) {
+        if ($tshirtImage->customer_id !== null || $tshirtImage->custom) {
             abort(403, 'Unauthorized access to custom customer design.');
         }
 

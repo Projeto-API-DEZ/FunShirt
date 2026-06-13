@@ -10,6 +10,8 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class AuthController extends Controller
 {
@@ -41,7 +43,7 @@ class AuthController extends Controller
             if (! $user->hasVerifiedEmail()) {
                 $user->sendEmailVerificationNotification();
 
-                return redirect()->route('verification.notice');
+                return redirect()->route('email.verify.notice');
             }
 
             return redirect()->intended(route('dashboard'));
@@ -83,7 +85,39 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('verification.notice');
+        return redirect()->route('email.verify.notice');
+    }
+
+    public function showVerificationNotice(Request $request): View|RedirectResponse
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return redirect()->route('dashboard');
+        }
+
+        return view('pages.auth.verify-email');
+    }
+
+    public function resendVerificationNotice(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return redirect()->route('dashboard');
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return back()->with('status', 'verification-link-sent');
     }
 
     public function logout(Request $request)

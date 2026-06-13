@@ -8,11 +8,20 @@ use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
+    protected function ensureCartAccess(): void
+    {
+        if (auth()->user()?->isStaff()) {
+            abort(403, 'Staff accounts do not have shopping cart access.');
+        }
+    }
+
     /**
      * Display cart contents.
      */
     public function index()
     {
+        $this->ensureCartAccess();
+
         $cart = session()->get('cart', []);
         $priceConfig = Price::first();
         $colors = \App\Models\Color::orderBy('name')->get();
@@ -78,6 +87,8 @@ class CartController extends Controller
      */
     public function add(Request $request, ?TshirtImage $tshirtImage = null)
     {
+        $this->ensureCartAccess();
+
         $tshirtImage ??= TshirtImage::findOrFail($request->input('tshirt_image_id'));
 
         // Only catalog images allowed here
@@ -133,6 +144,8 @@ class CartController extends Controller
      */
     public function update(Request $request, $key)
     {
+        $this->ensureCartAccess();
+
         $cart = session()->get('cart', []);
         if (!isset($cart[$key])) {
             return redirect()->route('cart.show')->with('error', 'Item not found.');
@@ -181,6 +194,8 @@ class CartController extends Controller
      */
     public function remove($key)
     {
+        $this->ensureCartAccess();
+
         $cart = session()->get('cart', []);
         if (isset($cart[$key])) {
             unset($cart[$key]);
@@ -194,6 +209,8 @@ class CartController extends Controller
      */
     public function clear()
     {
+        $this->ensureCartAccess();
+
         session()->forget('cart');
         return redirect()->route('cart.show')->with('success', 'Cart cleared.');
     }
@@ -204,6 +221,8 @@ class CartController extends Controller
      */
     public function checkout()
     {
+        $this->ensureCartAccess();
+
         if (!auth()->check()) {
             // Save intended URL to redirect back after login
             session()->put('url.intended', route('cart.checkout'));

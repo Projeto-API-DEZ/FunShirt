@@ -14,12 +14,21 @@ class ProfileController extends Controller
     {
         $user = Auth::user()->load('customer');
 
+        if ($user->isStaff()) {
+            abort(403, 'Staff accounts cannot edit profile details.');
+        }
+
         return view('profile', compact('user'));
     }
 
     public function update(ProfileUpdateFormRequest $request)
     {
         $user = Auth::user();
+
+        if ($user->isStaff()) {
+            abort(403, 'Staff accounts cannot edit profile details.');
+        }
+
         $validated = $request->validated();
 
         DB::transaction(function () use ($user, $validated, $request) {
