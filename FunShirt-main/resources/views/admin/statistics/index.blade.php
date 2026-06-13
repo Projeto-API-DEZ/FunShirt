@@ -1,62 +1,75 @@
-<x-layouts::main-content title="Business Statistics" heading="Store Analytics" subheading="Overview of sales and performance metrics">
-    <div class="max-w-7xl mx-auto py-6">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                <p class="text-sm font-medium text-zinc-500">Total Sales</p>
-                <p class="text-2xl font-bold">€{{ number_format($stats['total_sales'], 2) }}</p>
-            </div>
-            <div class="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                <p class="text-sm font-medium text-zinc-500">Orders Closed</p>
-                <p class="text-2xl font-bold">{{ $stats['orders_closed'] }}</p>
-            </div>
-            <div class="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                <p class="text-sm font-medium text-zinc-500">Orders Pending</p>
-                <p class="text-2xl font-bold">{{ $stats['orders_pending'] }}</p>
-            </div>
-            <div class="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                <p class="text-sm font-medium text-zinc-500">Total Customers</p>
-                <p class="text-2xl font-bold">{{ $stats['total_customers'] }}</p>
-            </div>
+<x-layouts::main-content title="Statistics" heading="Business Statistics" subheading="Sales overview and insights">
+    <!-- KPI cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white p-4 rounded shadow text-center">
+            <div class="text-sm text-gray-500">Total Sales</div>
+            <div class="text-2xl font-bold">€{{ number_format($totalSales, 2) }}</div>
         </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                <h3 class="text-lg font-bold mb-4">Monthly Sales</h3>
-                <table class="w-full">
-                    <thead>
-                        <tr class="text-left text-sm text-zinc-500">
-                            <th class="pb-2">Month</th>
-                            <th class="pb-2 text-right">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($stats['sales_by_month'] as $month)
-                            <tr class="border-t border-zinc-100 dark:border-zinc-800">
-                                <td class="py-2">{{ $month->month }}</td>
-                                <td class="py-2 text-right">€{{ number_format($month->total, 2) }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                <h3 class="text-lg font-bold mb-4">Recent Sales</h3>
-                <div class="space-y-4">
-                    @foreach($stats['recent_sales'] as $order)
-                        <div class="flex justify-between items-center border-b border-zinc-50 dark:border-zinc-800 pb-2">
-                            <div>
-                                <p class="font-medium">Order #{{ $order->id }}</p>
-                                <p class="text-xs text-zinc-500">{{ $order->customer->user->name }}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="font-bold text-sm">€{{ number_format($order->total_price, 2) }}</p>
-                                <p class="text-[10px] text-zinc-400">{{ $order->date }}</p>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
+        <div class="bg-white p-4 rounded shadow text-center">
+            <div class="text-sm text-gray-500">Total Orders</div>
+            <div class="text-2xl font-bold">{{ $totalOrders }}</div>
+        </div>
+        <div class="bg-white p-4 rounded shadow text-center">
+            <div class="text-sm text-gray-500">Average Order</div>
+            <div class="text-2xl font-bold">€{{ number_format($avgOrderValue, 2) }}</div>
+        </div>
+        <div class="bg-white p-4 rounded shadow text-center">
+            <div class="text-sm text-gray-500">Catalog / Custom Revenue</div>
+            <div class="text-lg font-bold">€{{ number_format($catalogRevenue, 2) }} / €{{ number_format($customRevenue, 2) }}</div>
         </div>
     </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white p-4 rounded shadow">
+            <h3 class="font-semibold mb-2">Monthly Sales (last 12 months)</h3>
+            <canvas id="monthlyChart" height="200"></canvas>
+        </div>
+        <div class="bg-white p-4 rounded shadow">
+            <h3 class="font-semibold mb-2">Orders by Status</h3>
+            <canvas id="statusChart" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Top products -->
+    <div class="bg-white p-4 rounded shadow mb-6">
+        <h3 class="font-semibold mb-2">Top 5 Best‑Selling Products</h3>
+        <ul class="list-disc pl-5">
+            @forelse($topProducts as $item)
+                <li>{{ $item->tshirtImage->name ?? 'Deleted' }} – {{ $item->total_qty }} sold</li>
+            @empty
+                <li>No sales yet.</li>
+            @endforelse
+        </ul>
+    </div>
+
+    <!-- Sales by category -->
+    <div class="bg-white p-4 rounded shadow">
+        <h3 class="font-semibold mb-2">Sales by Category</h3>
+        <ul class="list-disc pl-5">
+            @forelse($salesByCategory as $cat)
+                <li>{{ $cat->name ?? 'Uncategorized' }} – €{{ number_format($cat->total, 2) }}</li>
+            @empty
+                <li>No data.</li>
+            @endforelse
+        </ul>
+    </div>
+
+    <!-- Include Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const monthlyLabels = @json($monthlySales->pluck('month'));
+        const monthlyTotals = @json($monthlySales->pluck('total'));
+        new Chart(document.getElementById('monthlyChart'), {
+            type: 'line',
+            data: { labels: monthlyLabels, datasets: [{ label: 'Sales (€)', data: monthlyTotals, borderColor: '#4f46e5' }] }
+        });
+
+        const statusLabels = @json($ordersByStatus->pluck('status'));
+        const statusCounts = @json($ordersByStatus->pluck('count'));
+        new Chart(document.getElementById('statusChart'), {
+            type: 'pie',
+            data: { labels: statusLabels, datasets: [{ data: statusCounts, backgroundColor: ['#22c55e', '#ef4444', '#f59e0b'] }] }
+        });
+    </script>
 </x-layouts::main-content>

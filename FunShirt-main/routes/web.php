@@ -113,6 +113,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Cancel order Admin
         Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel')->middleware('can:cancel,order');
+
+        // Statistics Access
+        Route::get('/statistics', [App\Http\Controllers\Admin\StatisticsController::class, 'index'])->name('statistics.index');
     });
 });
 
