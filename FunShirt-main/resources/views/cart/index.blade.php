@@ -24,7 +24,6 @@
                     <tbody class="divide-y divide-zinc-200">
                         @foreach ($cart as $key => $item)
                             @php
-                                // Determine design URL (catalog or custom)
                                 if (isset($item['type']) && $item['type'] === 'custom') {
                                     $designUrl = route('customer.images.download', ['customImage' => $item['id']]);
                                 } else {
@@ -50,13 +49,10 @@
                                 </td>
                                 <td class="px-4 py-4">
                                     <form method="POST" action="{{ route('cart.update', $key) }}" class="flex flex-col gap-2 sm:flex-row sm:items-center">
-                                        @csrf
-                                        @method('PUT')
+                                        @csrf @method('PUT')
                                         <select name="color_code" class="rounded border border-zinc-300 bg-white px-2 py-1 text-sm" onchange="this.form.submit()">
                                             @foreach (\App\Models\Color::orderBy('name')->get() as $color)
-                                                <option value="{{ $color->code }}" @selected($item['color_code'] === $color->code)>
-                                                    {{ $color->name }}
-                                                </option>
+                                                <option value="{{ $color->code }}" @selected($item['color_code'] === $color->code)>{{ $color->name }}</option>
                                             @endforeach
                                         </select>
                                         <select name="size" class="rounded border border-zinc-300 bg-white px-2 py-1 text-sm" onchange="this.form.submit()">
@@ -69,17 +65,15 @@
                                 <td class="px-4 py-4 text-right text-sm text-zinc-700">&euro;{{ number_format($item['unit_price'], 2) }}</td>
                                 <td class="px-4 py-4 text-right">
                                     <form method="POST" action="{{ route('cart.update', $key) }}" class="inline-flex items-center gap-2">
-                                        @csrf
-                                        @method('PUT')
-                                        <input type="number" name="qty" value="{{ $item['qty'] }}" min="0" class="w-20 rounded border border-zinc-300 px-2 py-1 text-right text-sm">
+                                        @csrf @method('PUT')
+                                        <input type="number" name="quantity" value="{{ $item['quantity'] }}" min="0" class="w-20 rounded border border-zinc-300 px-2 py-1 text-right text-sm">
                                         <button type="submit" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">Update</button>
                                     </form>
                                 </td>
-                                <td class="px-4 py-4 text-right font-semibold text-zinc-900">&euro;{{ number_format($item['sub_total'], 2) }}</td>
+                                <td class="px-4 py-4 text-right font-semibold text-zinc-900">&euro;{{ number_format($item['subtotal'], 2) }}</td>
                                 <td class="px-4 py-4 text-right">
                                     <form method="POST" action="{{ route('cart.remove', $key) }}">
-                                        @csrf
-                                        @method('DELETE')
+                                        @csrf @method('DELETE')
                                         <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-800">Remove</button>
                                     </form>
                                 </td>
@@ -92,28 +86,16 @@
             <div class="mt-8 flex flex-col gap-4 border-t border-zinc-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex gap-3">
                     <form method="POST" action="{{ route('cart.clear') }}">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100">
-                            Clear Cart
-                        </button>
+                        @csrf @method('DELETE')
+                        <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100">Clear Cart</button>
                     </form>
-                    <a href="{{ route('catalog.index') }}" class="inline-flex items-center justify-center rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100">
-                        Continue Shopping
-                    </a>
+                    <a href="{{ route('catalog.index') }}" class="inline-flex items-center justify-center rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100">Continue Shopping</a>
                 </div>
-
                 <div class="text-right">
                     <p class="text-xl font-bold text-zinc-900">Total: &euro;{{ number_format($total, 2) }}</p>
-                    <a href="{{ route('checkout.index') }}" class="mt-2 inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500">
-                        Proceed to Checkout
-                    </a>
+                    <a href="{{ route('checkout.index') }}" class="mt-2 inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500">Proceed to Checkout</a>
                 </div>
             </div>
         @endif
     </div>
-
-    @push('scripts')
-        <script src="{{ asset('js/preview.js') }}"></script>
-    @endpush
 </x-layouts::main-content>

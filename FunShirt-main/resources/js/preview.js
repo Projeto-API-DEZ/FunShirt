@@ -28,7 +28,7 @@ function generateTshirtPreview(canvasId, baseImageUrl, designImageUrl, options =
     designImg.src = designImageUrl;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.tshirt-preview').forEach(canvas => {
         generateTshirtPreview(canvas.id, canvas.dataset.baseUrl, canvas.dataset.designUrl, {
             scale: canvas.dataset.scale || 0.7,
