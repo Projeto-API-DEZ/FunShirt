@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Color;
-use Illuminate\Http\Request;
+use App\Requests\ColorFormRequest;
+use Illuminate\Support\Facades\DB;
 
 class ColorController extends Controller
 {
@@ -19,14 +20,9 @@ class ColorController extends Controller
         return view('admin.colors.create');
     }
 
-    public function store(Request $request)
+    public function store(ColorFormRequest $request)
     {
-        $request->validate([
-            'code' => 'required|string|max:50|unique:colors,code',
-            'name' => 'required|string|max:255',
-        ]);
-
-        Color::create($request->only(['code', 'name']));
+        Color::create($request->validated());
         return redirect()->route('admin.colors.index')->with('success', 'Color created.');
     }
 
@@ -35,14 +31,30 @@ class ColorController extends Controller
         return view('admin.colors.edit', compact('color'));
     }
 
-    public function update(Request $request, Color $color)
+    public function update(ColorFormRequest $request, Color $color)
     {
-        $request->validate([
-            'code' => 'required|string|max:50|unique:colors,code,' . $color->code . ',code',
-            'name' => 'required|string|max:255',
-        ]);
+        $validated = $request->validated();
 
-        $color->update($request->only(['code', 'name']));
+        if ($validated['code'] === $color->code) {
+            $color->name = $validated['name'];
+            $color->save();
+
+            return redirect()->route('admin.colors.index')->with('success', 'Color updated.');
+        }
+
+        DB::transaction(function () use ($color, $validated) {
+            Color::create([
+                'code' => $validated['code'],
+                'name' => $validated['name'],
+            ]);
+
+            DB::table('order_items')
+                ->where('color_code', $color->code)
+                ->update(['color_code' => $validated['code']]);
+
+            $color->delete();
+        });
+
         return redirect()->route('admin.colors.index')->with('success', 'Color updated.');
     }
 

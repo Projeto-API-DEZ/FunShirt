@@ -30,7 +30,7 @@
                                         {{ $isCustomImage ? 'Custom image' : 'Catalog image' }}
                                     </p>
                                     <p class="mt-1 text-sm text-zinc-500">Color: {{ strtoupper((string) $item->color_code) }} | Size: {{ $item->size }} | Qty: {{ $item->qty }}</p>
-                                    @if ($item->tshirtImage?->image_url)
+                                    @if ($viewer?->isStaff() && $item->tshirtImage?->image_url)
                                         <div class="mt-3 flex flex-wrap items-center gap-2">
                                             <a
                                                 href="{{ route('orders.items.image', ['order' => $order, 'item' => $item]) }}"
@@ -116,7 +116,7 @@
                         </div>
                     @endif
 
-                    @if ($viewer?->isStaff() && $order->status === 'pending')
+                    @if (($viewer?->isStaff() || $viewer?->isAdmin()) && $order->status === 'pending')
                         <form method="POST" action="{{ route('orders.updateStatus', $order) }}" class="mt-4">
                             @csrf
                             @method('PATCH')

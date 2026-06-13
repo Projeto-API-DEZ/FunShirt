@@ -25,49 +25,6 @@ new class extends Component
             ? 'background: var(--app-surface-2); color: var(--app-text); border: 1px solid var(--app-border);'
             : 'color: var(--app-text); border: 1px solid transparent;';
     })
-    @php(
-        $otherLinks = collect([
-            ['label' => 'Login', 'href' => route('login'), 'guest' => true],
-            ['label' => 'Register', 'href' => route('register'), 'guest' => true],
-            ['label' => 'Dashboard', 'href' => route('dashboard'), 'auth' => true],
-            ['label' => 'Profile', 'href' => route('profile.edit'), 'auth' => true, 'except_staff' => true],
-            ['label' => 'Change Password', 'href' => route('profile.password'), 'staff' => true],
-            ['label' => 'Orders', 'href' => route('orders.index'), 'auth' => true],
-            ['label' => 'Checkout', 'href' => route('checkout.index'), 'customer' => true],
-            ['label' => 'Admin Users', 'href' => route('admin.users.index'), 'admin' => true],
-            ['label' => 'Admin Categories', 'href' => route('admin.categories.index'), 'admin' => true],
-            ['label' => 'Admin Colors', 'href' => route('admin.colors.index'), 'admin' => true],
-            ['label' => 'Admin Designs', 'href' => route('admin.tshirt-images.index'), 'admin' => true],
-            ['label' => 'Admin Prices', 'href' => route('admin.prices.index'), 'admin' => true],
-            ['label' => 'Admin Statistics', 'href' => route('admin.statistics.index'), 'admin' => true],
-        ])->filter(function (array $link) use ($user) {
-            if (($link['guest'] ?? false) && $user) {
-                return false;
-            }
-
-            if (($link['auth'] ?? false) && ! $user) {
-                return false;
-            }
-
-            if (($link['customer'] ?? false) && ! $user?->isCustomer()) {
-                return false;
-            }
-
-            if (($link['staff'] ?? false) && ! $user?->isStaff()) {
-                return false;
-            }
-
-            if (($link['except_staff'] ?? false) && $user?->isStaff()) {
-                return false;
-            }
-
-            if (($link['admin'] ?? false) && ! $user?->isAdmin()) {
-                return false;
-            }
-
-            return true;
-        })->values()
-    )
 
     <div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <div class="flex items-center gap-4">
@@ -81,28 +38,18 @@ new class extends Component
 
             <div class="hidden items-center gap-2 md:flex">
                 <a href="{{ route('catalog.index') }}" class="{{ $navClass() }}" style="{{ $navStyle(request()->routeIs('catalog.index')) }}" wire:navigate>Catalog</a>
-                @if ($user && ! $user->isStaff())
+                @if ($user && $user->isCustomer())
                     <a href="{{ route('customize.create') }}" class="{{ $navClass() }}" style="{{ $navStyle(request()->routeIs('customize.*')) }}" wire:navigate>Customize</a>
                 @endif
 
-                <x-dropdown align="left" width="w-72" contentClasses="py-1">
-                    <x-slot name="trigger">
-                        <button class="{{ $navClass() }}" style="{{ $navStyle(request()->routeIs('dashboard') || request()->routeIs('admin.*') || request()->routeIs('login') || request()->routeIs('register') || request()->routeIs('checkout.*') || request()->routeIs('profile.*') || request()->routeIs('orders.*')) }}">
-                            <span>Other</span>
-                            <svg class="ml-2 inline h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                    </x-slot>
-
-                    <x-slot name="content">
-                        @foreach ($otherLinks as $link)
-                            <x-dropdown-link :href="$link['href']" wire:navigate>
-                                {{ $link['label'] }}
-                            </x-dropdown-link>
-                        @endforeach
-                    </x-slot>
-                </x-dropdown>
+                @if ($user?->isAdmin())
+                    <a href="{{ route('admin.users.index') }}" class="{{ $navClass() }}" style="{{ $navStyle(request()->routeIs('admin.users.*')) }}" wire:navigate>User Management</a>
+                    <a href="{{ route('admin.categories.index') }}" class="{{ $navClass() }}" style="{{ $navStyle(request()->routeIs('admin.categories.*')) }}" wire:navigate>Categories</a>
+                    <a href="{{ route('admin.colors.index') }}" class="{{ $navClass() }}" style="{{ $navStyle(request()->routeIs('admin.colors.*')) }}" wire:navigate>Colors</a>
+                    <a href="{{ route('admin.tshirt-images.index') }}" class="{{ $navClass() }}" style="{{ $navStyle(request()->routeIs('admin.tshirt-images.*')) }}" wire:navigate>Designs</a>
+                    <a href="{{ route('admin.prices.index') }}" class="{{ $navClass() }}" style="{{ $navStyle(request()->routeIs('admin.prices.*')) }}" wire:navigate>Prices</a>
+                    <a href="{{ route('admin.statistics.index') }}" class="{{ $navClass() }}" style="{{ $navStyle(request()->routeIs('admin.statistics.*')) }}" wire:navigate>Statistics</a>
+                @endif
             </div>
         </div>
 
@@ -173,12 +120,6 @@ new class extends Component
                             </x-dropdown-link>
                         @endif
 
-                        @if ($user->isAdmin())
-                            <x-dropdown-link :href="route('admin.users.index')" wire:navigate>
-                                User Management
-                            </x-dropdown-link>
-                        @endif
-
                         <button wire:click="logout" class="w-full text-start">
                             <x-dropdown-link>
                                 Log Out
@@ -230,9 +171,30 @@ new class extends Component
             <x-responsive-nav-link :href="route('catalog.index')" :active="request()->routeIs('catalog.index')" wire:navigate>
                 Catalog
             </x-responsive-nav-link>
-            @if ($user && ! $user->isStaff())
+            @if ($user && $user->isCustomer())
                 <x-responsive-nav-link :href="route('customize.create')" :active="request()->routeIs('customize.*')" wire:navigate>
                     Customize
+                </x-responsive-nav-link>
+            @endif
+
+            @if ($user?->isAdmin())
+                <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')" wire:navigate>
+                    User Management
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.categories.index')" :active="request()->routeIs('admin.categories.*')" wire:navigate>
+                    Categories
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.colors.index')" :active="request()->routeIs('admin.colors.*')" wire:navigate>
+                    Colors
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.tshirt-images.index')" :active="request()->routeIs('admin.tshirt-images.*')" wire:navigate>
+                    Designs
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.prices.index')" :active="request()->routeIs('admin.prices.*')" wire:navigate>
+                    Prices
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.statistics.index')" :active="request()->routeIs('admin.statistics.*')" wire:navigate>
+                    Statistics
                 </x-responsive-nav-link>
             @endif
 
@@ -250,15 +212,6 @@ new class extends Component
                     Register
                 </x-responsive-nav-link>
             @endguest
-
-            <div class="rounded-xl px-3 py-2 text-sm font-semibold" style="background: var(--app-surface-2); color: var(--app-text);">Other</div>
-            <div class="space-y-1">
-                @foreach ($otherLinks as $link)
-                    <x-responsive-nav-link :href="$link['href']" wire:navigate>
-                        {{ $link['label'] }}
-                    </x-responsive-nav-link>
-                @endforeach
-            </div>
         </div>
 
         @auth
@@ -293,10 +246,6 @@ new class extends Component
                         <a href="{{ route('profile.password') }}" class="block rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-text);" wire:navigate>Change Password</a>
                     @else
                         <a href="{{ route('profile.edit') }}" class="block rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-text);" wire:navigate>Profile</a>
-                    @endif
-
-                    @if ($user->isAdmin())
-                        <a href="{{ route('admin.users.index') }}" class="block rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-muted);" wire:navigate>User Management</a>
                     @endif
 
                     <button wire:click="logout" class="w-full text-start">

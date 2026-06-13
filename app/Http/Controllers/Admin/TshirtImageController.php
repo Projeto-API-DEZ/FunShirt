@@ -41,47 +41,14 @@ class TshirtImageController extends Controller
 
     public function store(TshirtImageFormRequest $request)
     {
-        // $validated = $request->validated();
-        // $user = Auth::user();
-
-        // $filename = null;
-        // if ($request->hasFile('image_file')) {
-        //     $file = $request->file('image_file');
-        //     $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-
-        //     if ($user->isCustomer()) {
-        //         // Ficheiros privados de clientes ficam fora do disco publico.
-        //         Storage::disk('local')->putFileAs('tshirt_images_private', $file, $filename);
-        //     } else {
-        //         // Imagens de catalogo ficam disponiveis no disco publico.
-        //         Storage::disk('public')->putFileAs('tshirt_images', $file, $filename);
-        //     }
-        // }
-
-        // TshirtImage::create([
-        //     'name' => $validated['name'],
-        //     'description' => $validated['description'] ?? null,
-        //     'category_id' => $user->isCustomer() ? null : ($validated['category_id'] ?? null),
-        //     'customer_id' => $user->isCustomer() ? $user->id : null,
-        //     'image_url' => $filename,
-        // ]);
-
-        // return redirect()->route('tshirt-images.index')->with('alert-success', 'Design added successfully!');
-
-         $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'category_id' => 'nullable|exists:categories,id',
-            'image' => 'required|image|max:2048',
-        ]);
-
+        $validated = $request->validated();
         $path = $request->file('image')->store('tshirt_images', 'public');
         
         TshirtImage::create([
             'customer_id' => null,
-            'category_id' => $request->category_id,
-            'name' => $request->name,
-            'description' => $request->description,
+            'category_id' => $validated['category_id'] ?? null,
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
             'image_url' => basename($path),
         ]);
 
@@ -95,21 +62,16 @@ class TshirtImageController extends Controller
         return view('admin.tshirt-images.edit', compact('tshirtImage', 'categories'));
     }
 
-    public function update(Request $request, TshirtImage $tshirtImage)
+    public function update(TshirtImageFormRequest $request, TshirtImage $tshirtImage)
     {
         if ($tshirtImage->customer_id !== null) abort(404);
-        
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'category_id' => 'nullable|exists:categories,id',
-            'image' => 'nullable|image|max:2048',
-        ]);
+
+        $validated = $request->validated();
 
         $data = [
-            'category_id' => $request->category_id,
-            'name' => $request->name,
-            'description' => $request->description,
+            'category_id' => $validated['category_id'] ?? null,
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
         ];
 
         if ($request->hasFile('image')) {

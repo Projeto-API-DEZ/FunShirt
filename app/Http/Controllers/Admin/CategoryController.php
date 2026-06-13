@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Requests\CategoryFormRequest;
 use App\Models\Category;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends Controller
@@ -20,14 +20,11 @@ class CategoryController extends Controller
         return view('admin.categories.create');
     }
 
-    public function store(Request $request)
+    public function store(CategoryFormRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name',
-            'image' => 'nullable|image|max:2048',
-        ]);
+        $validated = $request->validated();
+        $data = ['name' => $validated['name']];
 
-        $data = ['name' => $request->name];
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('categories', 'public');
             $data['image_url'] = basename($path);
@@ -42,14 +39,11 @@ class CategoryController extends Controller
         return view('admin.categories.edit', compact('category'));
     }
 
-    public function update(Request $request, Category $category)
+    public function update(CategoryFormRequest $request, Category $category)
     {
-        $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
-            'image' => 'nullable|image|max:2048',
-        ]);
+        $validated = $request->validated();
+        $data = ['name' => $validated['name']];
 
-        $data = ['name' => $request->name];
         if ($request->hasFile('image')) {
             if ($category->image_url) {
                 Storage::disk('public')->delete('categories/' . $category->image_url);

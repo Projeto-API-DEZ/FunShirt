@@ -14,11 +14,11 @@ class PriceFormRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'catalog_price' => 'required|numeric|min:0',
-            'custom_price' => 'required|numeric|min:0',
-            'qty_discount_threshold' => 'required|integer|min:1',
-            'catalog_discount_price' => 'required|numeric|min:0|lte:catalog_price',
-            'custom_discount_price' => 'required|numeric|min:0|lte:custom_price',
+            'unit_price_catalog' => 'required|numeric|min:0',
+            'unit_price_own' => 'required|numeric|min:0',
+            'qty_discount' => 'required|integer|min:1',
+            'unit_price_catalog_discount' => 'required|numeric|min:0|lte:unit_price_catalog',
+            'unit_price_own_discount' => 'required|numeric|min:0|lte:unit_price_own',
         ];
     }
 }

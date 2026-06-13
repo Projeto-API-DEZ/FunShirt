@@ -3,6 +3,7 @@
     $readonly = $mode === 'show';
     $user = $user ?? new \App\Models\User();
     $customer = $user->customer;
+    $selectedRole = old('user_type', $user->user_type ?: 'C');
     $roleLabels = [
         'C' => 'Customer',
         'F' => 'Staff',
@@ -14,18 +15,18 @@
         : 'Will be pending until email verification';
 
     $blockedLabel = $user->blocked ? 'Blocked' : 'Active';
-    $avatarSize = $mode === 'show' ? 250 : 160;
+    $avatarSize = $mode === 'show' ? 220 : 144;
 @endphp
 
-<div class="grid gap-10 xl:grid-cols-[1.25fr_0.75fr]">
+<div class="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]" @if($mode === 'create') data-admin-user-create @endif>
     <div class="space-y-10">
         <section class="rounded-2xl border p-6 shadow-sm" style="background: var(--app-surface); border-color: var(--app-border);">
-            <div class="mb-5">
+            <div class="mb-6">
                 <h3 class="text-base font-semibold" style="color: var(--app-text);">Identity</h3>
                 <p class="mt-1 text-sm" style="color: var(--app-muted);">Core account data used for access and role assignment.</p>
             </div>
 
-            <div class="grid md:grid-cols-2" style="column-gap: 15px; row-gap: 15px;">
+            <div class="grid md:grid-cols-2" style="column-gap: 18px; row-gap: 16px;">
                 <div>
                     <label for="name" class="block text-sm font-medium" style="color: var(--app-text);">Full Name</label>
                     <input
@@ -153,85 +154,91 @@
             </div>
         </section>
 
-        <section class="rounded-2xl border p-6 shadow-sm" style="background: var(--app-surface); border-color: var(--app-border);">
-            <div class="mb-5">
-                <h3 class="text-base font-semibold" style="color: var(--app-text);">Billing & Payment Details</h3>
-                <p class="mt-1 text-sm" style="color: var(--app-muted);">
-                    Optional customer details stored in the `customers` table when available.
-                </p>
-            </div>
-
-            <div class="grid md:grid-cols-2" style="column-gap: 15px; row-gap: 15px;">
-                <div>
-                    <label for="nif" class="block text-sm font-medium" style="color: var(--app-text);">NIF</label>
-                    <input
-                        id="nif"
-                        name="nif"
-                        type="text"
-                        value="{{ old('nif', $customer?->nif) }}"
-                        @disabled($readonly)
-                        placeholder="123456789"
-                        class="mt-1 block w-full rounded-xl border px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        style="background: var(--app-surface); border-color: var(--app-border); color: var(--app-text);"
-                    >
+        @if ($mode === 'create')
+            <section
+                class="rounded-2xl border p-6 shadow-sm {{ $selectedRole === 'C' ? '' : 'hidden' }}"
+                style="background: var(--app-surface); border-color: var(--app-border);"
+                data-billing-section
+            >
+                <div class="mb-5">
+                    <h3 class="text-base font-semibold" style="color: var(--app-text);">Billing & Payment Details</h3>
+                    <p class="mt-1 text-sm" style="color: var(--app-muted);">
+                        Only available when creating a customer account.
+                    </p>
                 </div>
 
-                <div>
-                    <label for="default_payment_type" class="block text-sm font-medium" style="color: var(--app-text);">Default Payment Type</label>
-                    <select
-                        id="default_payment_type"
-                        name="default_payment_type"
-                        @disabled($readonly)
-                        class="mt-1 block w-full rounded-xl border px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        style="background: var(--app-surface); border-color: var(--app-border); color: var(--app-text);"
-                    >
-                        <option value="">Select a payment method</option>
-                        <option value="Visa" @selected(old('default_payment_type', $customer?->default_payment_type) === 'Visa')>Visa</option>
-                        <option value="PayPal" @selected(old('default_payment_type', $customer?->default_payment_type) === 'PayPal')>PayPal</option>
-                        <option value="MB WAY" @selected(old('default_payment_type', $customer?->default_payment_type) === 'MB WAY')>MB WAY</option>
-                    </select>
-                </div>
+                <div class="grid md:grid-cols-2" style="column-gap: 15px; row-gap: 15px;">
+                    <div>
+                        <label for="nif" class="block text-sm font-medium" style="color: var(--app-text);">NIF</label>
+                        <input
+                            id="nif"
+                            name="nif"
+                            type="text"
+                            value="{{ old('nif', $customer?->nif) }}"
+                            @disabled($readonly)
+                            placeholder="123456789"
+                            class="mt-1 block w-full rounded-xl border px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            style="background: var(--app-surface); border-color: var(--app-border); color: var(--app-text);"
+                        >
+                    </div>
 
-                <div class="md:col-span-2">
-                    <label for="address" class="block text-sm font-medium" style="color: var(--app-text);">Address</label>
-                    <textarea
-                        id="address"
-                        name="address"
-                        rows="3"
-                        @disabled($readonly)
-                        placeholder="Street, city and postal code"
-                        class="mt-1 block w-full rounded-xl border px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        style="background: var(--app-surface); border-color: var(--app-border); color: var(--app-text);"
-                    >{{ old('address', $customer?->address) }}</textarea>
-                </div>
+                    <div>
+                        <label for="default_payment_type" class="block text-sm font-medium" style="color: var(--app-text);">Default Payment Type</label>
+                        <select
+                            id="default_payment_type"
+                            name="default_payment_type"
+                            @disabled($readonly)
+                            class="mt-1 block w-full rounded-xl border px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            style="background: var(--app-surface); border-color: var(--app-border); color: var(--app-text);"
+                        >
+                            <option value="">Select a payment method</option>
+                            <option value="Visa" @selected(old('default_payment_type', $customer?->default_payment_type) === 'Visa')>Visa</option>
+                            <option value="PayPal" @selected(old('default_payment_type', $customer?->default_payment_type) === 'PayPal')>PayPal</option>
+                            <option value="MB WAY" @selected(old('default_payment_type', $customer?->default_payment_type) === 'MB WAY')>MB WAY</option>
+                        </select>
+                    </div>
 
-                <div class="md:col-span-2">
-                    <label for="default_payment_ref" class="block text-sm font-medium" style="color: var(--app-text);">Default Payment Reference</label>
-                    <input
-                        id="default_payment_ref"
-                        name="default_payment_ref"
-                        type="text"
-                        value="{{ old('default_payment_ref', $customer?->default_payment_ref) }}"
-                        @disabled($readonly)
-                        placeholder="Card number, email or phone"
-                        class="mt-1 block w-full rounded-xl border px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        style="background: var(--app-surface); border-color: var(--app-border); color: var(--app-text);"
-                    >
+                    <div class="md:col-span-2">
+                        <label for="address" class="block text-sm font-medium" style="color: var(--app-text);">Address</label>
+                        <textarea
+                            id="address"
+                            name="address"
+                            rows="3"
+                            @disabled($readonly)
+                            placeholder="Street, city and postal code"
+                            class="mt-1 block w-full rounded-xl border px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            style="background: var(--app-surface); border-color: var(--app-border); color: var(--app-text);"
+                        >{{ old('address', $customer?->address) }}</textarea>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label for="default_payment_ref" class="block text-sm font-medium" style="color: var(--app-text);">Default Payment Reference</label>
+                        <input
+                            id="default_payment_ref"
+                            name="default_payment_ref"
+                            type="text"
+                            value="{{ old('default_payment_ref', $customer?->default_payment_ref) }}"
+                            @disabled($readonly)
+                            placeholder="Card number, email or phone"
+                            class="mt-1 block w-full rounded-xl border px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            style="background: var(--app-surface); border-color: var(--app-border); color: var(--app-text);"
+                        >
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
+        @endif
     </div>
 
     <div class="space-y-10">
         <section class="rounded-2xl border p-6 shadow-sm" style="background: var(--app-surface); border-color: var(--app-border);">
-            <div class="mb-5">
+            <div class="mb-6">
                 <h3 class="text-base font-semibold" style="color: var(--app-text);">Avatar</h3>
-                <p class="mt-1 text-sm" style="color: var(--app-muted);">
-                    {{ $readonly ? 'Read-only preview for the selected account.' : 'Upload an avatar or keep the initials-based fallback.' }}
+                <p class="mt-1 text-sm leading-6" style="color: var(--app-muted);">
+                    {{ $mode === 'create' ? 'Preview only for administrator and customer accounts. Upload remains available only for staff accounts.' : 'Read-only preview for the selected account.' }}
                 </p>
             </div>
 
-            <div class="flex flex-col items-center gap-4">
+            <div class="flex flex-col items-center gap-5">
                 <div class="flex items-center justify-center overflow-hidden rounded-full border font-semibold uppercase shadow-sm"
                      style="width: {{ $avatarSize }}px; height: {{ $avatarSize }}px; min-width: {{ $avatarSize }}px; min-height: {{ $avatarSize }}px; max-width: {{ $avatarSize }}px; max-height: {{ $avatarSize }}px; border-color: var(--app-border); background: {{ $user->hasUploadedPhoto() ? 'transparent' : '#4f46e5' }}; color: {{ $user->hasUploadedPhoto() ? 'transparent' : '#ffffff' }}; font-size: {{ $mode === 'show' ? '72px' : '42px' }};">
                     @if ($user->hasUploadedPhoto())
@@ -248,8 +255,8 @@
                     @endif
                 </div>
 
-                @if (! $readonly)
-                    <div class="w-full">
+                @if ($mode === 'create')
+                    <div class="w-full {{ $selectedRole === 'F' ? '' : 'hidden' }}" data-avatar-upload>
                         <label for="photo_file" class="block text-sm font-medium" style="color: var(--app-text);">Photo</label>
                         <input
                             id="photo_file"
@@ -331,3 +338,45 @@
         @endif
     </div>
 </div>
+
+@if ($mode === 'create')
+    <script>
+        (() => {
+            const root = document.querySelector('[data-admin-user-create]');
+            const roleSelect = document.getElementById('user_type');
+            const billingSection = root?.querySelector('[data-billing-section]');
+            const avatarUpload = root?.querySelector('[data-avatar-upload]');
+            const billingInputs = billingSection?.querySelectorAll('input, textarea, select');
+            const avatarInput = avatarUpload?.querySelector('input[type="file"]');
+
+            if (!root || !roleSelect) {
+                return;
+            }
+
+            const syncCreateRoleState = () => {
+                const role = roleSelect.value;
+                const showBilling = role === 'C';
+                const showAvatarUpload = role === 'F';
+
+                if (billingSection) {
+                    billingSection.classList.toggle('hidden', !showBilling);
+                }
+
+                billingInputs?.forEach((field) => {
+                    field.disabled = !showBilling;
+                });
+
+                if (avatarUpload) {
+                    avatarUpload.classList.toggle('hidden', !showAvatarUpload);
+                }
+
+                if (avatarInput) {
+                    avatarInput.disabled = !showAvatarUpload;
+                }
+            };
+
+            roleSelect.addEventListener('change', syncCreateRoleState);
+            syncCreateRoleState();
+        })();
+    </script>
+@endif

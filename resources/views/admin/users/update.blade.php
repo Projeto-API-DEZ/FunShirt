@@ -3,15 +3,21 @@
         <h2 class="text-xl font-semibold leading-tight text-gray-800">Edit User</h2>
     </x-slot>
 
-    <div class="py-10">
-        <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
+    <div class="py-8">
+        <div class="mx-auto max-w-6xl space-y-5 px-4 sm:px-6 lg:px-8">
             <section class="rounded-2xl border px-6 py-6 shadow-sm" style="background: var(--app-surface); border-color: var(--app-border);">
-                <div class="space-y-1">
-                    <p class="text-xs font-semibold uppercase tracking-[0.24em]" style="color: var(--app-muted);">Admin Backend</p>
-                    <h3 class="text-2xl font-semibold leading-tight" style="color: var(--app-text);">{{ $user->name }}</h3>
-                    <p class="max-w-2xl text-sm" style="color: var(--app-muted);">
-                        Update the account profile, optional customer details and access state.
-                    </p>
+                <div class="flex flex-wrap items-start justify-between gap-4">
+                    <div class="space-y-1">
+                        <p class="text-xs font-semibold uppercase tracking-[0.24em]" style="color: var(--app-muted);">Admin Backend</p>
+                        <h3 class="text-2xl font-semibold leading-tight" style="color: var(--app-text);">{{ $user->name }}</h3>
+                        <p class="max-w-2xl text-sm" style="color: var(--app-muted);">
+                            Update the core account profile and access state. Avatar and customer billing details stay read-only here.
+                        </p>
+                    </div>
+
+                    <a href="{{ route('admin.users.show', $user) }}" class="rounded-full px-4 py-2 text-sm font-medium" style="background: var(--app-surface-2); color: var(--app-muted);" wire:navigate>
+                        Back to Show
+                    </a>
                 </div>
             </section>
 

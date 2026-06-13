@@ -141,13 +141,8 @@ class OrderController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->isCustomer() && $order->customer_id !== $user->id) {
-            abort(403, 'Unauthorized access to order item image.');
-        }
-
-        if ($user->isStaff() && $order->status !== 'pending') {
-            abort(403, 'Staff can only access pending order item images.');
-        }
+        abort_unless($user->isStaff(), 403, 'Only staff can access order item images.');
+        abort_if($order->status !== 'pending', 403, 'Staff can only access pending order item images.');
 
         abort_if($item->order_id !== $order->id, 404, 'Order item does not belong to this order.');
         abort_if(! $item->tshirtImage?->image_url, 404, 'Image file not found.');

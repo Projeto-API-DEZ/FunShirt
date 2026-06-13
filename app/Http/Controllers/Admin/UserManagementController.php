@@ -10,7 +10,6 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class UserManagementController extends Controller
@@ -112,6 +111,8 @@ class UserManagementController extends Controller
         $this->ensureAdmin();
 
         $validated = $request->validated();
+        $isCustomerRole = ($validated['user_type'] ?? null) === 'C';
+        $canUploadAvatar = ($validated['user_type'] ?? null) === 'F';
 
         $user = new User();
         $user->name = $validated['name'];
@@ -121,13 +122,15 @@ class UserManagementController extends Controller
         $user->blocked = false;
         $user->password = Hash::make($validated['password']);
 
-        if ($request->hasFile('photo_file')) {
+        if ($canUploadAvatar && $request->hasFile('photo_file')) {
             $user->photo_url = $request->file('photo_file')->store('photos', 'public');
         }
 
         $user->save();
 
-        $this->syncCustomerDetails($user, $validated);
+        if ($isCustomerRole) {
+            $this->syncCustomerDetails($user, $validated);
+        }
 
         return redirect()
             ->route('admin.users.show', $user)
@@ -163,17 +166,7 @@ class UserManagementController extends Controller
         $user->gender = $validated['gender'];
         $user->user_type = $validated['user_type'];
 
-        if ($request->hasFile('photo_file')) {
-            if ($user->hasUploadedPhoto()) {
-                Storage::disk('public')->delete($user->normalizedPhotoPath());
-            }
-
-            $user->photo_url = $request->file('photo_file')->store('photos', 'public');
-        }
-
         $user->save();
-
-        $this->syncCustomerDetails($user, $validated);
 
         return redirect()
             ->route('admin.users.show', $user)

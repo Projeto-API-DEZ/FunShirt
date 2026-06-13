@@ -33,6 +33,7 @@
                 --app-bg: #f4f4f5;
                 --app-surface: #ffffff;
                 --app-surface-2: #fafafa;
+                --app-image-bg: #b7b8bb;
                 --app-border: #e4e4e7;
                 --app-text: #18181b;
                 --app-muted: #52525b;
@@ -45,6 +46,7 @@
                 --app-bg: #09090b;
                 --app-surface: #18181b;
                 --app-surface-2: #27272a;
+                --app-image-bg: #27272a;
                 --app-border: #3f3f46;
                 --app-text: #fafafa;
                 --app-muted: #a1a1aa;

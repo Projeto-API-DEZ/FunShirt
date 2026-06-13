@@ -19,7 +19,7 @@ class TshirtImageFormRequest extends FormRequest
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'category_id' => 'nullable|exists:categories,id',
-            'image_file' => ($isPost ? 'required' : 'nullable') . '|image|mimes:png|max:4096',
+            'image' => ($isPost ? 'required' : 'nullable') . '|image|mimes:jpg,jpeg,png,webp|max:4096',
         ];
     }
 }
