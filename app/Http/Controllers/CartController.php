@@ -10,8 +10,10 @@ class CartController extends Controller
 {
     protected function ensureCartAccess(): void
     {
-        if (auth()->user()?->isStaff()) {
-            abort(403, 'Staff accounts do not have shopping cart access.');
+        $user = auth()->user();
+
+        if ($user && ! $user->isCustomer()) {
+            abort(403, 'Only customer accounts can access the shopping cart.');
         }
     }
 
@@ -116,6 +118,7 @@ class CartController extends Controller
         if (isset($cart[$key])) {
             // Update existing item
             $cart[$key]['qty'] += $qty;
+            $cart[$key]['unit_price'] = $this->getUnitPrice($priceConfig, 'catalog', $cart[$key]['qty']);
             $cart[$key]['sub_total'] = $cart[$key]['qty'] * $cart[$key]['unit_price'];
         } else {
             // Add new item

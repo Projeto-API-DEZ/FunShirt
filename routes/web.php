@@ -60,6 +60,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/email/verify-notification', [App\Http\Controllers\AuthController::class, 'resendVerificationNotice'])->name('email.verify.send');
 
     Route::view('/password', 'profile-password')->name('profile.password');
+    Route::get('/customize/images/{tshirtImage}', [CustomTshirtController::class, 'streamPrivateImage'])->name('customize.image');
+    Route::get('/customize/library', [CustomTshirtController::class, 'library'])->name('customize.library');
+    Route::post('/customize/library/{tshirtImage}/cart', [CustomTshirtController::class, 'addExistingToCart'])->name('customize.library.add');
+    Route::delete('/customize/library/{tshirtImage}', [CustomTshirtController::class, 'destroyLibraryImage'])->name('customize.library.destroy');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -82,6 +86,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('orders')->name('orders.')->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('index');
         Route::get('/{order}', [OrderController::class, 'show'])->name('show')->middleware('can:view,order');
+        Route::get('/{order}/items/{item}/display', [OrderController::class, 'displayItemImage'])->name('items.display')->middleware('can:view,order');
         Route::get('/{order}/items/{item}/image', [OrderController::class, 'previewItemImage'])->name('items.image')->middleware('can:view,order');
         Route::get('/{order}/items/{item}/download', [OrderController::class, 'downloadItemImage'])->name('items.download')->middleware('can:view,order');
         Route::patch('/{order}/status', [OrderController::class, 'updateStatus'])->name('updateStatus');
@@ -107,15 +112,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('tshirt-images', TshirtImageController::class)->except(['show']);
 
         Route::resource('users', UserManagementController::class);
-
-        
-        // Cart routes (accessible by guests and authenticated users)
-        Route::get('/cart', [App\Http\Controllers\CartController::class, 'index'])->name('cart.index');
-        Route::post('/cart/add/{tshirtImage}', [App\Http\Controllers\CartController::class, 'add'])->name('cart.add');
-        Route::match(['put', 'patch'], '/cart/update/{key}', [App\Http\Controllers\CartController::class, 'update'])->name('cart.update');
-        Route::delete('/cart/remove/{key}', [App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
-        Route::delete('/cart/clear', [App\Http\Controllers\CartController::class, 'clear'])->name('cart.clear');
-        Route::get('/cart/checkout', [App\Http\Controllers\CartController::class, 'checkout'])->name('cart.checkout');
 
         Route::patch('users/{user}/toggle-block', [UserManagementController::class, 'toggleBlock'])
             ->name('users.toggle-block');

@@ -35,17 +35,12 @@ class CheckoutController extends Controller
 
         // O total e recalculado no servidor para impedir manipulacao no cliente.
         $pricing = Price::first();
-        $totalQuantity = array_sum(array_column($cart, 'qty'));
-        $useDiscount = $pricing && $totalQuantity >= $pricing->qty_discount;
         $totalPrice = 0;
 
         $orderItemsData = [];
         foreach ($cart as $item) {
-            if ($item['is_custom']) {
-                $unitPrice = $useDiscount ? $pricing->unit_price_own_discount : $pricing->unit_price_own;
-            } else {
-                $unitPrice = $useDiscount ? $pricing->unit_price_catalog_discount : $pricing->unit_price_catalog;
-            }
+            $type = !empty($item['is_custom']) ? 'custom' : 'catalog';
+            $unitPrice = $this->resolveUnitPrice($pricing, $type, (int) $item['qty']);
 
             $subTotal = $unitPrice * $item['qty'];
             $totalPrice += $subTotal;
@@ -82,5 +77,20 @@ class CheckoutController extends Controller
         session()->forget('cart');
 
         return redirect()->route('orders.index')->with('alert-success', 'Order submitted successfully! Tracking number generated.');
+    }
+
+    protected function resolveUnitPrice(?Price $pricing, string $type, int $qty): float
+    {
+        if (! $pricing) {
+            return 0;
+        }
+
+        $useDiscount = $pricing->qty_discount && $qty >= $pricing->qty_discount;
+
+        if ($type === 'custom') {
+            return (float) ($useDiscount ? $pricing->unit_price_own_discount : $pricing->unit_price_own);
+        }
+
+        return (float) ($useDiscount ? $pricing->unit_price_catalog_discount : $pricing->unit_price_catalog);
     }
 }

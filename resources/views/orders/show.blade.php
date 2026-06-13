@@ -12,12 +12,13 @@
                     @foreach ($order->items as $item)
                         @php($itemColor = '#' . ltrim((string) ($item->color_code ?? 'e4e4e7'), '#'))
                         @php($isCustomImage = (bool) ($item->tshirtImage?->custom ?? $item->custom ?? false))
+                        @php($itemImageUrl = $item->tshirtImage?->image_url ? ($isCustomImage ? route('orders.items.display', ['order' => $order, 'item' => $item]) : route('public.storage', ['path' => 'tshirt_images/' . $item->tshirtImage->image_url])) : null)
                         <div class="flex items-start justify-between gap-4 px-6 py-4">
                             <div class="flex items-start gap-4">
                                 <div class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-zinc-200" style="background-color: {{ $itemColor }};">
-                                    @if ($item->tshirtImage?->image_url)
+                                    @if ($itemImageUrl)
                                         <img
-                                            src="{{ route('public.storage', ['path' => 'tshirt_images/' . $item->tshirtImage->image_url]) }}"
+                                            src="{{ $itemImageUrl }}"
                                             alt="{{ $item->tshirtImage?->name ?? 'Deleted image' }}"
                                             class="h-full w-full object-contain"
                                         >
@@ -64,7 +65,7 @@
                 <div class="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
                     <h2 class="text-lg font-semibold text-zinc-900">Summary</h2>
                     <dl class="mt-4 space-y-3 text-sm">
-                        @if ($viewer?->isStaff())
+                        @if ($viewer?->isStaff() || $viewer?->isAdmin())
                             <div class="flex items-center justify-between gap-4">
                                 <dt class="text-zinc-500">Customer</dt>
                                 <dd class="font-medium text-zinc-900">{{ $order->customer?->user?->name ?? 'Unknown customer' }}</dd>
@@ -116,6 +117,13 @@
                         </div>
                     @endif
 
+                    @if ($order->reason_for_cancellation)
+                        <div class="mt-4 rounded-lg border border-rose-200 bg-rose-50 p-4">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-rose-700">Cancellation Reason</p>
+                            <p class="mt-2 text-sm text-rose-800">{{ $order->reason_for_cancellation }}</p>
+                        </div>
+                    @endif
+
                     @if (($viewer?->isStaff() || $viewer?->isAdmin()) && $order->status === 'pending')
                         <form method="POST" action="{{ route('orders.updateStatus', $order) }}" class="mt-4">
                             @csrf
@@ -137,8 +145,18 @@
                         @endif
 
                         @can('cancel', $order)
-                            <form action="{{ route('orders.cancel', $order) }}" method="POST" class="mt-4">
+                            <form action="{{ route('orders.cancel', $order) }}" method="POST" class="mt-4 space-y-3">
                                 @csrf
+                                <div>
+                                    <label for="reason_for_cancellation" class="mb-2 block text-sm font-medium text-zinc-700">Cancellation reason</label>
+                                    <textarea
+                                        id="reason_for_cancellation"
+                                        name="reason_for_cancellation"
+                                        rows="3"
+                                        class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-rose-400 focus:ring-2 focus:ring-rose-300"
+                                        placeholder="{{ $viewer?->isAdmin() ? 'Explain why this order is being canceled.' : 'Optional reason for cancellation.' }}"
+                                    >{{ old('reason_for_cancellation') }}</textarea>
+                                </div>
                                 <button type="submit" class="inline-flex items-center justify-center rounded-lg border border-rose-300 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100">
                                     Cancel order
                                 </button>

@@ -1,9 +1,11 @@
 <x-app-layout>
+    @include('admin.users.partials.theme')
+
     <x-slot name="header">
         <h2 class="text-xl font-semibold leading-tight text-gray-800">Show User</h2>
     </x-slot>
 
-    <div class="py-8">
+    <div class="admin-user-theme py-8">
         <div class="mx-auto max-w-6xl space-y-5 px-4 sm:px-6 lg:px-8">
             <section class="rounded-2xl border px-6 py-6 shadow-sm" style="background: var(--app-surface); border-color: var(--app-border);">
                 <div class="flex flex-wrap items-start justify-between gap-4">
@@ -16,7 +18,7 @@
                     </div>
 
                     <div class="flex flex-wrap gap-3">
-                        <a href="{{ route('admin.users.edit', $user) }}" class="rounded-full px-4 py-2 text-sm font-medium text-white" style="background: #4f46e5;" wire:navigate>
+                        <a href="{{ route('admin.users.edit', $user) }}" class="rounded-full px-4 py-2 text-sm font-medium text-white" style="background: #2563eb;" wire:navigate>
                             Edit
                         </a>
                         <a href="{{ route('admin.users.index') }}" class="rounded-full px-4 py-2 text-sm font-medium" style="background: var(--app-surface-2); color: var(--app-muted);" wire:navigate>

@@ -26,7 +26,7 @@
                             @php($detailUrl = ($item['type'] ?? 'catalog') === 'catalog' ? route('catalog.show', $item['tshirt_image_id']) : null)
                             @php($canvasId = 'preview-' . md5($key))
                             @php($hasBasePreview = file_exists(public_path('storage/tshirt_base/' . $item['color_code'] . '.jpg')))
-                            @php($designUrl = !empty($item['image_url']) ? route('public.storage', ['path' => 'tshirt_images/' . $item['image_url']]) : null)
+                            @php($designUrl = !empty($item['image_url']) ? (($item['type'] ?? 'catalog') === 'custom' ? route('customize.image', $item['tshirt_image_id']) : route('public.storage', ['path' => 'tshirt_images/' . $item['image_url']])) : null)
                             @php($baseUrl = $hasBasePreview ? asset('storage/tshirt_base/' . $item['color_code'] . '.jpg') : null)
                             <tr>
                                 <td class="px-4 py-4">

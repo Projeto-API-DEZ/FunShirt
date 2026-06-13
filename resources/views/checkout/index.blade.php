@@ -62,7 +62,7 @@
                     </div>
 
                     <div>
-                        <label for="payment_ref" class="mb-2 block text-sm font-medium text-zinc-700">Payment reference</label>
+                        <label for="payment_ref" id="payment-ref-label" class="mb-2 block text-sm font-medium text-zinc-700">Payment reference</label>
                         <input
                             id="payment_ref"
                             name="payment_ref"
@@ -72,7 +72,7 @@
                             placeholder="Card number, email or phone"
                             required
                         >
-                        <p class="mt-2 text-xs text-zinc-500">
+                        <p id="payment-ref-help" class="mt-2 text-xs text-zinc-500">
                             Visa: 16 digits starting with 4. PayPal: valid email. MB WAY: 9 digits starting with 9.
                         </p>
                     </div>
@@ -124,4 +124,59 @@
             </aside>
         </div>
     </div>
+
+    <script>
+        (() => {
+            const initPaymentReferenceUI = () => {
+                const paymentType = document.getElementById('payment_type');
+                const paymentRef = document.getElementById('payment_ref');
+                const paymentRefLabel = document.getElementById('payment-ref-label');
+                const paymentRefHelp = document.getElementById('payment-ref-help');
+
+                if (!paymentType || !paymentRef || !paymentRefLabel || !paymentRefHelp) {
+                    return;
+                }
+
+                const syncReferenceField = () => {
+                    switch (paymentType.value) {
+                        case 'Visa':
+                            paymentRefLabel.textContent = 'Card number';
+                            paymentRef.placeholder = '4123456789012345';
+                            paymentRef.setAttribute('inputmode', 'numeric');
+                            paymentRefHelp.textContent = 'Visa references must have 16 digits and start with 4.';
+                            break;
+                        case 'PayPal':
+                            paymentRefLabel.textContent = 'PayPal email';
+                            paymentRef.placeholder = 'customer@example.com';
+                            paymentRef.setAttribute('inputmode', 'email');
+                            paymentRefHelp.textContent = 'PayPal references must be a valid email address.';
+                            break;
+                        case 'MB WAY':
+                            paymentRefLabel.textContent = 'MB WAY phone number';
+                            paymentRef.placeholder = '912345678';
+                            paymentRef.setAttribute('inputmode', 'numeric');
+                            paymentRefHelp.textContent = 'MB WAY references must have 9 digits and start with 9.';
+                            break;
+                        default:
+                            paymentRefLabel.textContent = 'Payment reference';
+                            paymentRef.placeholder = 'Card number, email or phone';
+                            paymentRef.setAttribute('inputmode', 'text');
+                            paymentRefHelp.textContent = 'Visa: 16 digits starting with 4. PayPal: valid email. MB WAY: 9 digits starting with 9.';
+                            break;
+                    }
+                };
+
+                if (!paymentType.dataset.referenceBound) {
+                    paymentType.addEventListener('change', syncReferenceField);
+                    paymentType.dataset.referenceBound = 'true';
+                }
+
+                syncReferenceField();
+            };
+
+            document.addEventListener('DOMContentLoaded', initPaymentReferenceUI);
+            document.addEventListener('livewire:navigated', initPaymentReferenceUI);
+            initPaymentReferenceUI();
+        })();
+    </script>
 </x-layouts::main-content>

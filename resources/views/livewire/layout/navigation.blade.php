@@ -39,7 +39,7 @@ new class extends Component
             <div class="hidden items-center gap-2 md:flex">
                 <a href="{{ route('catalog.index') }}" class="{{ $navClass() }}" style="{{ $navStyle(request()->routeIs('catalog.index')) }}" wire:navigate>Catalog</a>
                 @if ($user && $user->isCustomer())
-                    <a href="{{ route('customize.create') }}" class="{{ $navClass() }}" style="{{ $navStyle(request()->routeIs('customize.*')) }}" wire:navigate>Customize</a>
+                    <a href="{{ route('customize.create') }}" class="{{ $navClass() }}" style="{{ $navStyle(request()->routeIs('customize.create')) }}" wire:navigate>Customize</a>
                 @endif
 
                 @if ($user?->isAdmin())
@@ -110,6 +110,12 @@ new class extends Component
                             Orders
                         </x-dropdown-link>
 
+                        @if ($user->isCustomer())
+                            <x-dropdown-link :href="route('customize.library')" wire:navigate>
+                                My Custom Images
+                            </x-dropdown-link>
+                        @endif
+
                         @if ($user->isStaff())
                             <x-dropdown-link :href="route('profile.password')" wire:navigate>
                                 Change Password
@@ -172,7 +178,7 @@ new class extends Component
                 Catalog
             </x-responsive-nav-link>
             @if ($user && $user->isCustomer())
-                <x-responsive-nav-link :href="route('customize.create')" :active="request()->routeIs('customize.*')" wire:navigate>
+                <x-responsive-nav-link :href="route('customize.create')" :active="request()->routeIs('customize.create')" wire:navigate>
                     Customize
                 </x-responsive-nav-link>
             @endif
@@ -241,6 +247,10 @@ new class extends Component
 
                 <div class="mt-3 space-y-1">
                     <a href="{{ route('orders.index') }}" class="block rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-text);" wire:navigate>Orders</a>
+
+                    @if ($user->isCustomer())
+                        <a href="{{ route('customize.library') }}" class="block rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-text);" wire:navigate>My Custom Images</a>
+                    @endif
 
                     @if ($user->isStaff())
                         <a href="{{ route('profile.password') }}" class="block rounded-xl px-3 py-2 text-sm" style="background: var(--app-surface-2); color: var(--app-text);" wire:navigate>Change Password</a>

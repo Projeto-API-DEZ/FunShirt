@@ -240,7 +240,7 @@
 
             <div class="flex flex-col items-center gap-5">
                 <div class="flex items-center justify-center overflow-hidden rounded-full border font-semibold uppercase shadow-sm"
-                     style="width: {{ $avatarSize }}px; height: {{ $avatarSize }}px; min-width: {{ $avatarSize }}px; min-height: {{ $avatarSize }}px; max-width: {{ $avatarSize }}px; max-height: {{ $avatarSize }}px; border-color: var(--app-border); background: {{ $user->hasUploadedPhoto() ? 'transparent' : '#4f46e5' }}; color: {{ $user->hasUploadedPhoto() ? 'transparent' : '#ffffff' }}; font-size: {{ $mode === 'show' ? '72px' : '42px' }};">
+                     style="width: {{ $avatarSize }}px; height: {{ $avatarSize }}px; min-width: {{ $avatarSize }}px; min-height: {{ $avatarSize }}px; max-width: {{ $avatarSize }}px; max-height: {{ $avatarSize }}px; border-color: var(--app-border); background: {{ $user->hasUploadedPhoto() ? 'transparent' : '#2563eb' }}; color: {{ $user->hasUploadedPhoto() ? 'transparent' : '#ffffff' }}; font-size: {{ $mode === 'show' ? '72px' : '42px' }};">
                     @if ($user->hasUploadedPhoto())
                         <img
                             src="{{ $user->photoFullUrl }}"

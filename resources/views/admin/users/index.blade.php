@@ -19,11 +19,13 @@
 @endphp
 
 <x-app-layout>
+    @include('admin.users.partials.theme')
+
     <x-slot name="header">
         <h2 class="text-xl font-semibold leading-tight text-gray-800">User Management</h2>
     </x-slot>
 
-    <div class="py-8">
+    <div class="admin-user-theme py-8">
         <div class="mx-auto max-w-[96rem] space-y-5" style="padding-left: 100px; padding-right: 100px;">
             @if (session('status'))
                 <div class="rounded-2xl border px-5 py-4 text-sm" style="background: #ecfdf5; border-color: #a7f3d0; color: #065f46;">
@@ -54,7 +56,7 @@
                     <a
                         href="{{ route('admin.users.create') }}"
                         class="inline-flex w-full items-center justify-center self-start rounded-xl px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:opacity-95 sm:w-auto lg:justify-self-end"
-                        style="background: #4f46e5;"
+                        style="background: #2563eb;"
                         wire:navigate
                     >
                         Create User
@@ -127,7 +129,7 @@
                                     Reset
                                 </a>
 
-                                <button type="submit" class="inline-flex min-w-[96px] items-center justify-center rounded-xl px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:opacity-95" style="background: #4f46e5;">
+                                <button type="submit" class="inline-flex min-w-[96px] items-center justify-center rounded-xl px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:opacity-95" style="background: #2563eb;">
                                     Search
                                 </button>
                             </div>
@@ -205,7 +207,7 @@
                                     <tr class="border-t align-top" style="border-color: var(--app-border);">
                                         <td class="px-6 py-5">
                                                 <div class="flex min-w-0 items-center gap-4">
-                                                    <div class="flex shrink-0 items-center justify-center overflow-hidden rounded-full border text-sm font-semibold uppercase leading-none" style="width: 50px; height: 50px; min-width: 50px; min-height: 50px; max-width: 50px; max-height: 50px; border-color: var(--app-border); background: {{ $user->hasUploadedPhoto() ? 'transparent' : '#4f46e5' }}; color: {{ $user->hasUploadedPhoto() ? 'transparent' : '#ffffff' }};">
+                                                    <div class="flex shrink-0 items-center justify-center overflow-hidden rounded-full border text-sm font-semibold uppercase leading-none" style="width: 50px; height: 50px; min-width: 50px; min-height: 50px; max-width: 50px; max-height: 50px; border-color: var(--app-border); background: {{ $user->hasUploadedPhoto() ? 'transparent' : '#2563eb' }}; color: {{ $user->hasUploadedPhoto() ? 'transparent' : '#ffffff' }};">
                                                     @if ($user->hasUploadedPhoto())
                                                         <img src="{{ $user->photoFullUrl }}" alt="" class="block object-cover object-center" style="width: 50px; height: 50px; min-width: 50px; min-height: 50px; max-width: 50px; max-height: 50px;">
                                                     @else
@@ -230,7 +232,7 @@
                                             </span>
                                         </td>
                                         <td class="px-6 py-5">
-                                            <span class="inline-flex rounded-full px-3 py-1 text-xs font-medium" style="background: {{ $user->blocked ? '#fef2f2' : '#eff6ff' }}; color: {{ $user->blocked ? '#b91c1c' : '#1d4ed8' }};">
+                                            <span class="inline-flex rounded-full px-3 py-1 text-xs font-medium" style="background: {{ $user->blocked ? '#fef2f2' : '#eff6ff' }}; color: {{ $user->blocked ? '#b91c1c' : '#2563eb' }};">
                                                 {{ $user->blocked ? 'Blocked' : 'Active' }}
                                             </span>
                                         </td>

@@ -11,7 +11,10 @@ class ColorController extends Controller
 {
     public function index()
     {
-        $colors = Color::orderBy('name')->paginate(15);
+        $colors = Color::query()
+            ->withCount(['orderItems as order_items_usage_count'])
+            ->orderBy('name')
+            ->paginate(15);
         return view('admin.colors.index', compact('colors'));
     }
 
@@ -60,6 +63,21 @@ class ColorController extends Controller
 
     public function destroy(Color $color)
     {
+        $hasOrderUsage = DB::table('order_items')
+            ->where('color_code', $color->code)
+            ->exists();
+
+        $hasSessionCartUsage = collect(session('cart', []))
+            ->contains(fn ($item) => ($item['color_code'] ?? null) === $color->code);
+
+        if ($hasOrderUsage || $hasSessionCartUsage) {
+            return redirect()
+                ->route('admin.colors.index')
+                ->withErrors([
+                    'color_delete' => 'This color cannot be deleted because it is already used by existing orders or by the current shopping cart session.',
+                ]);
+        }
+
         $color->delete();
         return redirect()->route('admin.colors.index')->with('success', 'Color deleted.');
     }

@@ -31,6 +31,17 @@ class StatisticsController extends Controller
             ->sortBy('month')
             ->values();
 
+        $yearlySales = Order::select(
+                DB::raw("strftime('%Y', date) as year"),
+                DB::raw('SUM(total_price) as total')
+            )
+            ->where('status', 'closed')
+            ->groupBy('year')
+            ->orderBy('year', 'desc')
+            ->get()
+            ->sortBy('year')
+            ->values();
+
         // Produtos mais vendidos entre encomendas fechadas.
         $topProducts = OrderItem::join('orders', 'order_items.order_id', '=', 'orders.id')
             ->where('orders.status', 'closed')
@@ -71,17 +82,27 @@ class StatisticsController extends Controller
             ->whereNotNull('tshirt_images.customer_id')
             ->sum('order_items.sub_total');
 
+        $topCustomers = Order::join('users', 'orders.customer_id', '=', 'users.id')
+            ->where('orders.status', 'closed')
+            ->select('users.name', 'users.email', DB::raw('SUM(orders.total_price) as total_spent'), DB::raw('COUNT(orders.id) as total_orders'))
+            ->groupBy('users.id', 'users.name', 'users.email')
+            ->orderByDesc('total_spent')
+            ->limit(10)
+            ->get();
+
         return view('admin.statistics.index', compact(
             'totalSales',
             'totalOrders',
             'closedOrders',
             'avgOrderValue',
             'monthlySales',
+            'yearlySales',
             'topProducts',
             'salesByCategory',
             'ordersByStatus',
             'catalogRevenue',
-            'customRevenue'
+            'customRevenue',
+            'topCustomers'
         ));
     }
 }

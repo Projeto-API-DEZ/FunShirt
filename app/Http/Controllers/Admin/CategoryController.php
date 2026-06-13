@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Requests\CategoryFormRequest;
 use App\Models\Category;
+use App\Models\TshirtImage;
 use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends Controller
@@ -58,6 +59,10 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
+        TshirtImage::where('category_id', $category->id)->update([
+            'category_id' => null,
+        ]);
+
         if ($category->image_url) {
             Storage::disk('public')->delete('categories/' . $category->image_url);
         }

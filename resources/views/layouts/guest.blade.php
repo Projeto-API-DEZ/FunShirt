@@ -101,101 +101,14 @@
         </style>
     </head>
     <body class="font-sans antialiased" style="background: var(--guest-bg); color: var(--guest-text);">
-        @php(
-            $guestLinks = [
-                ['label' => 'Login', 'href' => route('login')],
-                ['label' => 'Register', 'href' => route('register')],
-                ['label' => 'Forgot Password', 'href' => route('password.request')],
-            ]
-        )
-        @php($navClass = fn (): string => 'rounded-full px-3 py-2 text-sm font-medium transition')
         <div class="min-h-screen" style="background: var(--guest-bg); color: var(--guest-text);">
-            <header class="sticky top-0 z-40 border-b backdrop-blur" style="background: var(--guest-header); border-color: var(--guest-border);">
-                <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-                    <div class="flex items-center gap-4">
-                        <a href="{{ route('catalog.index') }}" class="flex items-center gap-3" wire:navigate>
-                            <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-600 text-sm font-semibold text-white">FS</div>
-                            <div class="hidden sm:block">
-                                <p class="text-sm font-semibold">FunShirt</p>
-                                <p class="text-xs" style="color: var(--guest-soft);">Workspace</p>
-                            </div>
-                        </a>
+            <livewire:layout.navigation />
 
-                        <nav class="hidden items-center gap-2 md:flex">
-                            <a href="{{ route('catalog.index') }}" class="{{ $navClass() }}" style="background: var(--guest-surface-soft); color: var(--guest-text); border: 1px solid var(--guest-border);" wire:navigate>Catalog</a>
-                            <x-dropdown align="left" width="w-72" contentClasses="py-1">
-                                <x-slot name="trigger">
-                                    <button class="{{ $navClass() }}" style="color: var(--guest-text); border: 1px solid transparent;">
-                                        <span>Other</span>
-                                        <svg class="ml-2 inline h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
-                                </x-slot>
-
-                                <x-slot name="content">
-                                    @foreach ($guestLinks as $link)
-                                        <x-dropdown-link :href="$link['href']" wire:navigate>
-                                            {{ $link['label'] }}
-                                        </x-dropdown-link>
-                                    @endforeach
-                                </x-slot>
-                            </x-dropdown>
-                        </nav>
-                    </div>
-
-                    <div class="flex items-center gap-2">
-                        <a href="{{ route('cart.show') }}" class="{{ $navClass() }} inline-flex items-center gap-2" style="color: var(--guest-text); border: 1px solid transparent;" wire:navigate>
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="9" cy="20" r="1"></circle>
-                                <circle cx="18" cy="20" r="1"></circle>
-                                <path d="M3 4h2l2.4 10.2a1 1 0 0 0 1 .8h9.8a1 1 0 0 0 1-.8L21 7H7"></path>
-                            </svg>
-                            <span>Cart</span>
-                        </a>
-                        <button
-                            type="button"
-                            id="theme-toggle-guest"
-                            aria-label="Toggle theme"
-                            class="inline-flex items-center rounded-full border px-3 py-2 text-sm font-medium transition"
-                            style="background: var(--guest-surface); border-color: var(--guest-border); color: var(--guest-text);"
-                        >
-                            <span data-theme-label-guest>Light</span>
-                        </button>
-                        <a href="{{ route('login') }}" class="{{ $navClass() }}" style="color: var(--guest-text); border: 1px solid transparent;" wire:navigate>Login</a>
-                        <a href="{{ route('register') }}" class="{{ $navClass() }} text-white shadow-sm" style="background: var(--guest-accent);" wire:navigate>Register</a>
-                    </div>
-                </div>
-            </header>
-
-            <main class="mx-auto flex min-h-[calc(100vh-81px)] w-full max-w-7xl items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
+            <main class="mx-auto flex min-h-[calc(100vh-64px)] w-full max-w-7xl items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
                 <div class="w-full max-w-2xl rounded-3xl border p-6 shadow-xl sm:p-8" style="background: var(--guest-surface); border-color: var(--guest-border); box-shadow: var(--guest-shadow);">
                     {{ $slot }}
                 </div>
             </main>
         </div>
-
-        <script>
-            (() => {
-                const root = document.documentElement;
-                const toggle = document.getElementById('theme-toggle-guest');
-                const label = document.querySelector('[data-theme-label-guest]');
-
-                const sync = () => {
-                    if (label) {
-                        label.textContent = root.dataset.theme === 'dark' ? 'Dark' : 'Light';
-                    }
-                };
-
-                sync();
-
-                toggle?.addEventListener('click', () => {
-                    const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
-                    window.funshirtApplyTheme(next);
-                });
-
-                document.addEventListener('funshirt-theme-changed', sync);
-            })();
-        </script>
     </body>
 </html>

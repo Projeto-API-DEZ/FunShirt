@@ -1,9 +1,11 @@
 <x-app-layout>
+    @include('admin.users.partials.theme')
+
     <x-slot name="header">
         <h2 class="text-xl font-semibold leading-tight text-gray-800">Create User</h2>
     </x-slot>
 
-    <div class="py-10">
+    <div class="admin-user-theme py-10">
         <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
             <section class="rounded-2xl border px-6 py-6 shadow-sm" style="background: var(--app-surface); border-color: var(--app-border);">
                 <div class="space-y-1">
@@ -31,7 +33,7 @@
                 @include('admin.users.partials.fields', ['mode' => 'create', 'user' => $user])
 
                 <div class="flex flex-wrap gap-3 border-t pt-6" style="border-color: var(--app-border);">
-                    <button type="submit" class="rounded-full px-4 py-2 text-sm font-medium text-white" style="background: #4f46e5;">
+                    <button type="submit" class="rounded-full px-4 py-2 text-sm font-medium text-white" style="background: #2563eb;">
                         Save User
                     </button>
                     <a href="{{ route('admin.users.index') }}" class="rounded-full px-4 py-2 text-sm font-medium" style="background: var(--app-surface-2); color: var(--app-muted);" wire:navigate>

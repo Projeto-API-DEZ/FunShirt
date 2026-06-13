@@ -1,9 +1,11 @@
 <x-app-layout>
+    @include('admin.users.partials.theme')
+
     <x-slot name="header">
         <h2 class="text-xl font-semibold leading-tight text-gray-800">Edit User</h2>
     </x-slot>
 
-    <div class="py-8">
+    <div class="admin-user-theme py-8">
         <div class="mx-auto max-w-6xl space-y-5 px-4 sm:px-6 lg:px-8">
             <section class="rounded-2xl border px-6 py-6 shadow-sm" style="background: var(--app-surface); border-color: var(--app-border);">
                 <div class="flex flex-wrap items-start justify-between gap-4">
@@ -44,7 +46,7 @@
                 @include('admin.users.partials.fields', ['mode' => 'edit', 'user' => $user])
 
                 <div class="flex flex-wrap border-t pt-6" style="gap: 10px; border-color: var(--app-border);">
-                    <button type="submit" class="rounded-full px-4 py-2 text-sm font-medium text-white" style="background: #4f46e5;">
+                    <button type="submit" class="rounded-full px-4 py-2 text-sm font-medium text-white" style="background: #2563eb;">
                         Save Changes
                     </button>
 
